@@ -1,7 +1,7 @@
 'use client';
 
-import type { Attachment, Message } from 'ai';
-import { useChat } from 'ai/react';
+import { Message, useAssistant } from 'ai/react';
+import type { Attachment, ChatRequestOptions, CreateMessage } from 'ai';
 import { AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
@@ -30,25 +30,31 @@ export function Chat({
   const { mutate } = useSWRConfig();
 
   const {
+    status,
     messages,
     setMessages,
-    handleSubmit,
     input,
     setInput,
     append,
-    isLoading,
-    stop,
-    data: streamingData,
-  } = useChat({
-    body: { id, modelId: selectedModelId },
-    initialMessages,
-    onFinish: () => {
-      mutate('/api/history');
-    },
-  });
+    submitMessage,
+    handleInputChange
+  } = useAssistant({ api: '/api/assistant' });
+
+  const handleSubmit = (event?: {
+      preventDefault?: () => void;
+    }, chatRequestOptions?: ChatRequestOptions) => { submitMessage(); };
+
+  type HandleSubmitType = (message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
+
+  const append_assistant : HandleSubmitType = async (message, chatRequestOptions) => { 
+    await append(message, { data: {}});
+    return Promise.resolve('');
+  }
 
   const { width: windowWidth = 1920, height: windowHeight = 1080 } =
     useWindowSize();
+
+  var isLoading = status === "in_progress";
 
   const [block, setBlock] = useState<UIBlock>({
     documentId: 'init',
@@ -123,9 +129,9 @@ export function Chat({
             setAttachments={setAttachments}
             messages={messages}
             setMessages={setMessages}
-            append={append}
-          />
-        </form>
+            append={append_assistant}
+            />
+          </form>
       </div>
 
       <AnimatePresence>
@@ -139,7 +145,7 @@ export function Chat({
             stop={stop}
             attachments={attachments}
             setAttachments={setAttachments}
-            append={append}
+            append={append_assistant}
             block={block}
             setBlock={setBlock}
             messages={messages}
@@ -149,7 +155,7 @@ export function Chat({
         )}
       </AnimatePresence>
 
-      <BlockStreamHandler streamingData={streamingData} setBlock={setBlock} />
+      {/* <BlockStreamHandler streamingData={streamingData} setBlock={setBlock} /> */}
     </>
   );
 }
