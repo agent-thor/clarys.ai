@@ -30,14 +30,14 @@ import { Textarea } from './ui/textarea';
 
 const suggestedActions = [
   {
-    title: 'What is the weather',
-    label: 'in San Francisco?',
-    action: 'What is the weather in San Francisco?',
+    title: 'Show me ',
+    label: 'all categories',
+    action: 'List all categories',
   },
   {
-    title: 'Help me draft an essay',
-    label: 'about Silicon Valley',
-    action: 'Help me draft a short essay about Silicon Valley',
+    title: 'List the last 5',
+    label: 'bounty proposals',
+    action: 'List the last 5 bounty proposals',
   },
 ];
 
