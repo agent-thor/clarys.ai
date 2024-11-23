@@ -29,11 +29,11 @@ export async function POST(req: Request) {
     async ({ forwardStream, sendDataMessage }) => {
       // Run the assistant on the thread
       const runStream = openai.beta.threads.runs.stream(threadId, {
-        assistant_id: 'asst_3Mgz7Tuh2iAQ8SiciTj0nOTd'
-        //   process.env.ASSISTANT_ID ??
-        //   (() => {
-        //     throw new Error('ASSISTANT_ID is not set');
-        //   })(),
+        assistant_id: 
+          process.env.ASSISTANT_ID ??
+            (() => {
+              throw new Error('ASSISTANT_ID is not set');
+            })(),
       });
 
       // forward run status would stream message deltas
