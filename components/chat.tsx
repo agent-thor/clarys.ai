@@ -37,12 +37,18 @@ export function Chat({
     setInput,
     append,
     submitMessage,
-    handleInputChange
+    handleInputChange,
+    stop
   } = useAssistant({ api: '/api/assistant' });
 
   const handleSubmit = (event?: {
       preventDefault?: () => void;
-    }, chatRequestOptions?: ChatRequestOptions) => { submitMessage(); };
+    }, chatRequestOptions?: ChatRequestOptions) => { 
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+      submitMessage(event as React.FormEvent<HTMLFormElement>);
+    };
 
   type HandleSubmitType = (message: Message | CreateMessage, chatRequestOptions?: ChatRequestOptions) => Promise<string | null | undefined>;
 
