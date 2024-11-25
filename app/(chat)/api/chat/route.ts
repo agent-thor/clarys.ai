@@ -30,6 +30,7 @@ import {
 import { generateTitleFromUserMessage } from '../../actions';
 
 export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
 
 type AllowedTools =
   | 'createDocument'
