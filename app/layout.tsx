@@ -14,6 +14,9 @@ export const metadata: Metadata = {
 export const viewport = {
   maximumScale: 1, // Disable auto-zoom on mobile Safari
 };
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60;
+
 
 const LIGHT_THEME_COLOR = 'hsl(0 0% 100%)';
 const DARK_THEME_COLOR = 'hsl(240deg 10% 3.92%)';

@@ -6,6 +6,8 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { auth } from '../(auth)/auth';
 
 export const experimental_ppr = true;
+export const dynamic = 'force-dynamic'
+export const maxDuration = 60;
 
 export default async function Layout({
   children,
