@@ -8,8 +8,13 @@ const openai = new OpenAI({
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 export const dynamic = 'force-dynamic';
+export const runtime = 'edge';
+
+import { unstable_noStore as noStore } from 'next/cache';
 
 export async function POST(req: Request) {
+  noStore(); // Disable caching
+
   // Parse the request body
   const input: {
     threadId: string | null;
