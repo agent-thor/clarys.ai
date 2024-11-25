@@ -62,7 +62,7 @@ export async function POST(reg: Request) {
 
     return new Response(stream, {
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'text/html; charset=utf-8',
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Transfer-Encoding': 'chunked',
             'Connection': 'keep-alive',
