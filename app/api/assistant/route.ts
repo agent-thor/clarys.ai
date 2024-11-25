@@ -1,36 +1,48 @@
 import { NextResponse } from 'next/server';
 
-export async function POST(req: Request) {
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
+export async function POST(reg: Request) {
     const encoder = new TextEncoder();
-    const chunks = [
-        "Streaming started. ",
-        "Here's the first part of the message... ",
-        "and now a bit more. ",
-        "Continuing to build the response, ",
-        "like how ChatGPT streams. ",
-        "Almost done! ",
-        "Just a little more content here. ",
-        "And finally, the end of the response."
+    const words = [
+        "Streaming", 
+        "started.", 
+        "Here's", 
+        "the", 
+        "first", 
+        "part", 
+        "of", 
+        "the", 
+        "message...", 
+        "and", 
+        "now", 
+        "a", 
+        "bit", 
+        "more.", 
+        "Almost", 
+        "done!"
     ];
 
     const stream = new ReadableStream({
         start(controller) {
             let i = 0;
             const interval = setInterval(() => {
-                if (i < chunks.length) {
-                    controller.enqueue(encoder.encode(chunks[i]));
+                if (i < words.length) {
+                    const chunk = '0:"' + words[i] + '"'; 
+                    controller.enqueue(encoder.encode(`${chunk}\n`)); // Send each word as JSON
                     i++;
                 } else {
                     clearInterval(interval);
                     controller.close();
                 }
-            }, 500); // Sends each chunk every 500ms
+            }, 500); // Sends a chunk every 500ms
         },
     });
-    
+
     return new Response(stream, {
         headers: {
-            'Content-Type': 'text/plain',
+            'Content-Type': 'application/json',
             'Cache-Control': 'no-cache, no-store, must-revalidate',
         },
     });
