@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export async function POST() {
+export async function POST(req: Request) {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
         start(controller) {
