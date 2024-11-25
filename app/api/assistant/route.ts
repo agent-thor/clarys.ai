@@ -62,7 +62,8 @@ export async function POST(reg: Request) {
 
     return new Response(stream, {
         headers: {
-            'Content-Type': 'text/html; charset=utf-8',
+            'Content-Type': 'text/event-stream',
+    		'X-Content-Type-Options': 'nosniff',
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Transfer-Encoding': 'chunked',
             'Connection': 'keep-alive',
