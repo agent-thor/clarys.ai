@@ -17,6 +17,7 @@ import { Block, type UIBlock } from './block';
 import { BlockStreamHandler } from './block-stream-handler';
 import { MultimodalInput } from './multimodal-input';
 import { Overview } from './overview';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export function Chat({
   id,
@@ -29,6 +30,8 @@ export function Chat({
 }) {
   const { mutate } = useSWRConfig();
 
+
+  noStore();
   const {
     status,
     messages,
