@@ -18,7 +18,7 @@ export const Overview = () => {
           <span>Welcome</span>
         </p>
         <p>
-          I'm a chatbot skilled in Polkadot Governance. Ask me anything!
+          I am a chatbot skilled in Polkadot Governance. Ask me anything!
         </p>
       </div>
     </motion.div>
