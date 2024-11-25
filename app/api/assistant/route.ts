@@ -14,28 +14,6 @@ import { unstable_noStore as noStore } from 'next/cache';
 
 export async function POST(req: Request) {
   noStore(); // Disable caching
-
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-      start(controller) {
-          controller.enqueue(encoder.encode('Streaming started...\n'));
-          let count = 1;
-          const interval = setInterval(() => {
-              controller.enqueue(encoder.encode(`Message ${count++}\n`));
-              if (count > 5) {
-                  clearInterval(interval);
-                  controller.close();
-              }
-          }, 1000);
-      },
-  });
-
-  return new Response(stream, {
-      headers: {
-          'Content-Type': 'text/plain',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-      },
-  });
   // Parse the request body
   const input: {
     threadId: string | null;
