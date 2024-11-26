@@ -11,6 +11,21 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'edge';
 
 import { unstable_noStore as noStore } from 'next/cache';
+import { RunSubmitToolOutputsParams } from 'openai/resources/beta/threads/runs/runs.mjs';
+
+type AllowedTools =
+  | 'createDocument'
+  | 'updateDocument'
+  | 'requestSuggestions'
+  | 'getWeather';
+
+const blocksTools: AllowedTools[] = [
+  'createDocument',
+  'updateDocument',
+  'requestSuggestions',
+];
+const weatherTools: AllowedTools[] = ['getWeather'];
+const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
 
 export async function POST(req: Request) {
   noStore(); // Disable caching
@@ -28,6 +43,24 @@ export async function POST(req: Request) {
     role: 'user',
     content: input.message,
   });
+
+  const getWeatherData = async (latitude: number, longitude: number) => {
+    try {
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
+      );
+  
+      if (!response.ok) {
+        throw new Error(`Failed to fetch weather data: ${response.statusText}`);
+      }
+  
+      const weatherData = await response.json();
+      return weatherData; // Return the parsed JSON response
+    } catch (error) {
+      console.error("Error fetching weather data:", error);
+      throw error; // Re-throw the error for handling by the caller
+    }
+  };
 
   return AssistantResponse(
     { threadId, messageId: createdMessage.id },
@@ -49,21 +82,20 @@ export async function POST(req: Request) {
         runResult?.status === 'requires_action' &&
         runResult.required_action?.type === 'submit_tool_outputs'
       ) {
-        const tool_outputs =
-          runResult.required_action.submit_tool_outputs.tool_calls.map(
-            (toolCall: any) => {
-              const parameters = JSON.parse(toolCall.function.arguments);
-
-              switch (toolCall.function.name) {
-                // configure your tool calls here
-
-                default:
-                  throw new Error(
-                    `Unknown tool call function: ${toolCall.function.name}`,
-                  );
-              }
-            },
-          );
+        const tool_outputs: Array<RunSubmitToolOutputsParams.ToolOutput> = [];
+        
+        for(const tool_call of runResult.required_action.submit_tool_outputs.tool_calls) {
+          const { id: toolCallId, function: fn } = tool_call;
+          const { name, arguments: args } = fn;
+          if (name === 'getWeather') {
+            const { latitude, longitude } = JSON.parse(args);
+            const weather = await getWeatherData(latitude, longitude);
+            tool_outputs.push({
+              tool_call_id: toolCallId,
+              output: JSON.stringify(weather)
+            });
+          }
+        }
 
         runResult = await forwardStream(
           openai.beta.threads.runs.submitToolOutputsStream(
@@ -73,6 +105,6 @@ export async function POST(req: Request) {
           ),
         );
       }
-    },
+    }
   );
 }
