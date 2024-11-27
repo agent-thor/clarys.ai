@@ -47,7 +47,7 @@ const blocksTools: AllowedTools[] = [
 const weatherTools: AllowedTools[] = ['getWeather'];
 
 const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
-
+/*
 export async function POST(request: Request) {
   const {
     id,
@@ -371,7 +371,7 @@ export async function POST(request: Request) {
     data: streamingData,
   });
 }
-
+*/
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
