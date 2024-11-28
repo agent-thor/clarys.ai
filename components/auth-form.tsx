@@ -9,7 +9,7 @@ export function AuthForm({
                              children,
                              defaultEmail = '',
                          }: {
-    action: () => void
+    action: (formData: FormData) => void
     /*NonNullable<
     string | ((formData: FormData) => void | Promise<void>) | undefined
 >;*/
@@ -28,9 +28,8 @@ export function AuthForm({
         setFormData({...formData, [e.target.name]: e.target.value});
     };
     return (
-        <Form action={() => {
-            console.warn('login on form');
-            action();
+        <Form action={(formData) => {
+            action(formData);
         }} className="flex-1 flex flex-col gap-4 w-full" noValidate>
             <div className="flex flex-col gap-2">
                 <Input

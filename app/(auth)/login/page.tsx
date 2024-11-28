@@ -15,7 +15,9 @@ export default function Page() {
     const router = useRouter();
 
 
+    const [formData, setFormData] = useState<FormData>(new FormData());
     const [email, setEmail] = useState('');
+    const [initState, setInitState] = useState(true);
     const [isSuccessful, setIsSuccessful] = useState(false);
     const [errors, setErrors] = useState({email: ""});
 
@@ -27,6 +29,7 @@ export default function Page() {
     );
 
     useEffect(() => {
+        console.log("HERE")
         // debugger;
         let errors = {email: ""};
         if (state.status === 'failed') {
@@ -42,13 +45,21 @@ export default function Page() {
         }
     }, [state.status, router]);
 
-    const handleSubmit = (formData: FormData) => {
-        setEmail(formData.get('email') as string);
-        const isValid = validateForm();
-        if (isValid) {
+    useEffect(()=>{
+        validateForm();
+    },[email])
+
+    useEffect(()=>{
+        if(errors.email === ''){
             formAction(formData);
         }
 
+    }, [errors])
+
+    const handleSubmit = (formData: FormData) => {
+        setEmail(formData.get('email') as string)
+        setFormData(formData);
+        setInitState(false);
     };
 
     const validateForm = () => {
@@ -57,16 +68,17 @@ export default function Page() {
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         // Email validation
-        if (!email) {
+        if (email === '' && !initState) {
             errors.email = "Email is required.";
             isValid = false;
-        } else if (!emailRegex.test(email)) {
+        } 
+        
+        if (email !== '' && !emailRegex.test(email)) {
             errors.email = "Enter a valid email.";
             isValid = false;
         }
 
         setErrors(errors);
-        return isValid;
     };
 
     return (
