@@ -4,6 +4,9 @@ import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 
 import './globals.css';
+import {OverlayProvider} from "@/components/OverlayPanel/OverlayContext";
+import React from "react";
+import OverlayPanel from "@/components/OverlayPanel/OverlayPanel";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.vercel.ai'),
@@ -67,7 +70,11 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Toaster position="top-center" />
-          {children}
+          <OverlayProvider>
+            {children}
+            <OverlayPanel></OverlayPanel>
+          </OverlayProvider>
+
         </ThemeProvider>
       </body>
     </html>
