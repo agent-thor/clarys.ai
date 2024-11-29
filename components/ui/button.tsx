@@ -38,18 +38,18 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
-
+/*todo temporary solution for button design*/
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button';
-    return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    );
-  },
+    ({ className/*, variant, size*/, asChild = false, ...props }, ref) => {
+        const Comp = asChild ? Slot : 'button';
+        return (
+            <Comp
+                className='h-10 pt-4 pb-4 pr-8 pl-8 gap-2 rounded-2xl border border-solid font-bold leading-4 text-center buttonShadow items-center justify-center flex'/*{cn(buttonVariants({ variant, size, className }))}*/
+                ref={ref}
+                {...props}
+            />
+        );
+    },
 );
 Button.displayName = 'Button';
 
