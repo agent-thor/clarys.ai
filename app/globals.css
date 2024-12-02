@@ -26,6 +26,7 @@ html {
   right: 0;
   bottom: 0;
   left: 0;
+  overflow: hidden;
 }
 
 /*@media (prefers-color-scheme: dark) {*/
@@ -169,6 +170,7 @@ html {
 
 .bg-card-panel {
   box-shadow: 0 8px 16px 0 #11121429;
+  max-height: calc(100vh - 128px);
 }
 
 .inputField {

@@ -29,6 +29,10 @@ const config: Config = {
             spacing: {
                 '40': '160px', // Add custom value for 160px padding
             },
+            width: {
+                card: '480px',
+                fullCard: '1280px',
+            },
             boxShadow: {
                 card: "0 8px 16px 0 #11121429",
             },
