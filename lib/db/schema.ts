@@ -10,6 +10,7 @@ import {
   foreignKey,
   boolean,
 } from 'drizzle-orm/pg-core';
+import { threadId } from 'worker_threads';
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -26,6 +27,7 @@ export const chat = pgTable('Chat', {
   userId: uuid('userId')
     .notNull()
     .references(() => user.id),
+  threadId: text('threadId').notNull()
 });
 
 export type Chat = InferSelectModel<typeof chat>;

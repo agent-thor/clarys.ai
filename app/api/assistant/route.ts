@@ -7,11 +7,14 @@ const openai = new OpenAI({
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
-export const dynamic = 'force-dynamic';
-export const runtime = 'edge';
 
-import { unstable_noStore as noStore } from 'next/cache';
 import { RunSubmitToolOutputsParams } from 'openai/resources/beta/threads/runs/runs.mjs';
+import { getChatById, saveChat, saveMessages } from '@/lib/db/queries';
+import { generateTitleFromUserMessage } from '@/app/(chat)/actions';
+import { auth } from '@/app/(auth)/auth';
+import { message } from '@/lib/db/schema';
+import { generateUUID } from '@/lib/utils';
+import { threadId } from 'worker_threads';
 
 type AllowedTools =
   | 'createDocument'
@@ -27,21 +30,43 @@ const blocksTools: AllowedTools[] = [
 const weatherTools: AllowedTools[] = ['getWeather'];
 const allTools: AllowedTools[] = [...blocksTools, ...weatherTools];
 
-export async function POST(req: Request) {
-  noStore(); // Disable caching
+export async function POST(request: Request) {
   // Parse the request body
-  const input: {
-    threadId: string | null;
-    message: string;
-  } = await req.json();
+  const {
+    id,
+    message,
+  }: { id: string; message: string;  } =
+    await request.json();
 
-  // Create a thread if needed
-  const threadId = input.threadId ?? (await openai.beta.threads.create({})).id;
+  const session = await auth();
+
+  if (!session || !session.user || !session.user.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  let chat = await getChatById({ id });
+
+
+  if (!chat) {
+      // Create a thread if needed
+    const threadId = (await openai.beta.threads.create({})).id;
+
+    const title = await generateTitleFromUserMessage({ message });
+    const insertedChats = await saveChat({ id, userId: session.user.id, title, threadId });
+    chat = insertedChats[0];
+  }
+
+  await saveMessages({
+    messages: [
+      { role: 'user', content: message, id: generateUUID(), createdAt: new Date(), chatId: chat.id },
+    ],
+  });
+
 
   // Add a message to the thread
-  const createdMessage = await openai.beta.threads.messages.create(threadId, {
+  const createdMessage = await openai.beta.threads.messages.create(chat.threadId, {
     role: 'user',
-    content: input.message,
+    content: message,
   });
 
   const getWeatherData = async (latitude: number, longitude: number) => {
@@ -49,11 +74,11 @@ export async function POST(req: Request) {
       const response = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
       );
-  
+
       if (!response.ok) {
         throw new Error(`Failed to fetch weather data: ${response.statusText}`);
       }
-  
+
       const weatherData = await response.json();
       return weatherData; // Return the parsed JSON response
     } catch (error) {
@@ -63,16 +88,17 @@ export async function POST(req: Request) {
   };
 
   return AssistantResponse(
-    { threadId, messageId: createdMessage.id },
+    { threadId: chat.threadId, messageId: createdMessage.id },
     async ({ forwardStream, sendDataMessage }) => {
       // Run the assistant on the thread
-      const runStream = openai.beta.threads.runs.stream(threadId, {
-        assistant_id: 
+      const runStream = openai.beta.threads.runs.stream(chat.threadId, {
+        assistant_id:
           process.env.ASSISTANT_ID ??
-            (() => {
-              throw new Error('ASSISTANT_ID is not set');
-            })(),
+          (() => {
+            throw new Error('ASSISTANT_ID is not set');
+          })(),
       });
+      
 
       // forward run status would stream message deltas
       let runResult = await forwardStream(runStream);
@@ -83,8 +109,8 @@ export async function POST(req: Request) {
         runResult.required_action?.type === 'submit_tool_outputs'
       ) {
         const tool_outputs: Array<RunSubmitToolOutputsParams.ToolOutput> = [];
-        
-        for(const tool_call of runResult.required_action.submit_tool_outputs.tool_calls) {
+
+        for (const tool_call of runResult.required_action.submit_tool_outputs.tool_calls) {
           const { id: toolCallId, function: fn } = tool_call;
           const { name, arguments: args } = fn;
           if (name === 'getWeather') {
@@ -99,11 +125,29 @@ export async function POST(req: Request) {
 
         runResult = await forwardStream(
           openai.beta.threads.runs.submitToolOutputsStream(
-            threadId,
+            chat.threadId,
             runResult.id,
             { tool_outputs },
           ),
         );
+      }
+
+      if (runResult?.status === 'completed') {
+        const lastMessages = await openai.beta.threads.messages.list(chat.threadId, 
+          {
+            order: 'desc',
+            limit: 1             
+
+          });
+          const lastMessage = lastMessages.data[0];
+          if (lastMessage.content[0].type === 'text') {
+            const content = lastMessage.content[0];
+            await saveMessages({
+              messages: [
+                { role: lastMessage.role, content: content.text.value, id: generateUUID(), createdAt: new Date(), chatId: chat.id },
+              ],
+            });
+          }
       }
     }
   );

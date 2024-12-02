@@ -50,10 +50,12 @@ export async function saveChat({
   id,
   userId,
   title,
+  threadId
 }: {
   id: string;
   userId: string;
   title: string;
+  threadId: string;
 }) {
   try {
     return await db.insert(chat).values({
@@ -61,7 +63,9 @@ export async function saveChat({
       createdAt: new Date(),
       userId,
       title,
-    });
+      threadId
+    })
+    .returning();
   } catch (error) {
     console.error('Failed to save chat in database');
     throw error;
@@ -98,8 +102,18 @@ export async function getChatById({ id }: { id: string }) {
     const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
     return selectedChat;
   } catch (error) {
-    console.error('Failed to get chat by id from database');
+    console.error('Failed to get chat by threadId from database');
     throw error;
+  }
+}
+
+export async function getChatByThreadId({ threadId }: { threadId: string }) {
+  try {
+    const [selectedChat] = await db.select().from(chat).where(eq(chat.threadId, threadId));
+    return selectedChat;
+  } catch (error) {
+    console.error('Failed to get chat by threadId from database');
+    // throw error;
   }
 }
 
