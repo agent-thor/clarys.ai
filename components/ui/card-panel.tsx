@@ -2,7 +2,6 @@
 
 import {ReactNode} from "react";
 import Footer from "@/components/footer";
-import {cn} from "@/lib/utils";
 
 interface CardPanelProps {
     children: ReactNode; // This allows a component to be passed as children
@@ -18,19 +17,8 @@ const CardPanel: React.FC<CardPanelProps> = ({children, fullWidth = false, blur 
     return (
         <div className={classes}>
             {children}
-            <Footer></Footer>
+            <Footer singleRow={fullWidth}></Footer>
         </div>
     );
-
-    // return (
-    //     <div className={cn(
-    //         'flex flex-col p-16 gap-8 text-sm leading-6 font-normal font-clarys rounded-[48px] bg-card-panel bg-backgroundOpac max-w-[1280px]',
-    //         ` w-[${width}]`,
-    //         ` backdrop-blur-[${blur}]`,
-    //     )}>
-    //         {children}
-    //         <Footer></Footer>
-    //     </div>
-    // );
 }
 export default CardPanel;
