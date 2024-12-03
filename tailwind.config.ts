@@ -24,7 +24,8 @@ const config: Config = {
                 sm: 'calc(var(--radius) - 4px)',
             },
             fontSize: {
-                greeting: '120px',
+                greetingBig: '120px',
+                greetingMedium: '80px',
             },
             spacing: {
                 '40': '160px', // Add custom value for 160px padding
