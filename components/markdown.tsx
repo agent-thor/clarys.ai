@@ -110,9 +110,14 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
     },
   };
 
+  const transformedText = children.replace(/【(\d+:\d+)†(.*?)】/g, (match, p1, p2) => {
+    const sourceNumber = parseInt(p1, 10);
+    return ` ([${p2}](${[p2]}))`;
+  });
+
   return (
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-      {children}
+      {transformedText}
     </ReactMarkdown>
   );
 };
