@@ -62,15 +62,15 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           <SidebarHistory user={user} />
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="gap-0 -mx-2">
-        {user && (
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarUserNav user={user} />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-      </SidebarFooter>
+      {/*<SidebarFooter className="gap-0 -mx-2">*/}
+      {/*  {user && (*/}
+      {/*    <SidebarGroup>*/}
+      {/*      <SidebarGroupContent>*/}
+      {/*        <SidebarUserNav user={user} />*/}
+      {/*      </SidebarGroupContent>*/}
+      {/*    </SidebarGroup>*/}
+      {/*  )}*/}
+      {/*</SidebarFooter>*/}
     </Sidebar>
   );
 }

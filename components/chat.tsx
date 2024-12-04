@@ -9,7 +9,7 @@ import {useWindowSize} from 'usehooks-ts';
 
 import {ChatHeader} from '@/components/chat-header';
 import {useScrollToBottom} from '@/components/use-scroll-to-bottom';
-import type {Vote} from '@/lib/db/schema';
+import type {User, Vote} from '@/lib/db/schema';
 import {fetcher} from '@/lib/utils';
 
 import {Block, type UIBlock} from './block';
@@ -22,13 +22,14 @@ export function Chat({
                          id,
                          initialMessages,
                          selectedModelId,
+                         user,
                      }: {
     id: string;
     initialMessages: Array<Message>;
     selectedModelId: string;
+    user: User;
 }) {
     const {mutate} = useSWRConfig();
-
 
     const {
         status,
@@ -99,7 +100,7 @@ export function Chat({
                         ref={messagesContainerRef}
                         className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
                     >
-                        {messages.length === 0 && <Overview/>}
+                        {messages.length === 0 && <Overview userName={user?.name ? user.name : (user?.email ? user.email : '') }/>}
 
                         {messages.map((message, index) => (
                             <PreviewMessage

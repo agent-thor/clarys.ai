@@ -27,17 +27,26 @@ import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import Image from "next/image";
 
 const suggestedActions = [
   {
+    image: '/images/accountability.png',
+    title: 'Check a proposal for ',
+    label: 'Accountability',
+    action: 'Give me a proposal for accountability check',
+  },
+  {
+    image: '/images/proposals.png',
+    title: 'Compare two ',
+    label: 'proposals',
+    action: 'Give me 2 proposals to compare',
+  },
+  {
+    image: '/images/categories.png',
     title: 'Show me ',
     label: 'all categories',
     action: 'List all categories',
-  },
-  {
-    title: 'List the last 5',
-    label: 'bounty proposals',
-    action: 'List the last 5 bounty proposals',
   },
 ];
 
@@ -201,7 +210,8 @@ export function MultimodalInput({
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
-          <div className="grid sm:grid-cols-2 gap-2 w-full">
+
+          <div className="grid sm:grid-cols-3 gap-8 w-full">
             {suggestedActions.map((suggestedAction, index) => (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -221,10 +231,12 @@ export function MultimodalInput({
                       content: suggestedAction.action,
                     });
                   }}
-                  className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
+                  className="border flex-1 gap-1 sm:flex-col w-full h-auto p-8"
                 >
-                  <span className="font-medium">{suggestedAction.title}</span>
-                  <span className="text-muted-foreground">
+                  <Image src={suggestedAction.image} alt="logomark" width={40}
+                         height={40} className='pb-4'></Image>
+                  <span className="text-[14px] font-normal leading-4">{suggestedAction.title}</span>
+                  <span className="leading-8 text-[32px] font-bold">
                     {suggestedAction.label}
                   </span>
                 </Button>
@@ -264,7 +276,7 @@ export function MultimodalInput({
 
       <Textarea
         ref={textareaRef}
-        placeholder="Send a message..."
+        placeholder="Ask me anything about proposals, their content & feasibility"
         value={input}
         onChange={handleInput}
         className={cx(
@@ -306,21 +318,22 @@ export function MultimodalInput({
           }}
           disabled={input.length === 0 || uploadQueue.length > 0}
         >
-          <ArrowUpIcon size={14} />
+          <Image src="/images/search-icon.png" alt="logomark" width={24}
+                 height={24}></Image>
         </Button>
       )}
 
-      <Button
-        className="rounded-full p-1.5 h-fit absolute bottom-2 right-11 m-0.5 dark:border-zinc-700"
-        onClick={(event) => {
-          event.preventDefault();
-          fileInputRef.current?.click();
-        }}
-        variant="outline"
-        disabled={isLoading}
-      >
-        <PaperclipIcon size={14} />
-      </Button>
+      {/*<Button*/}
+      {/*  className="rounded-full p-1.5 h-fit absolute bottom-2 right-11 m-0.5 dark:border-zinc-700"*/}
+      {/*  onClick={(event) => {*/}
+      {/*    event.preventDefault();*/}
+      {/*    fileInputRef.current?.click();*/}
+      {/*  }}*/}
+      {/*  variant="outline"*/}
+      {/*  disabled={isLoading}*/}
+      {/*>*/}
+      {/*  <PaperclipIcon size={14} />*/}
+      {/*</Button>*/}
     </div>
   );
 }
