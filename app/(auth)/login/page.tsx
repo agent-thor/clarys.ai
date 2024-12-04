@@ -10,7 +10,7 @@ export default function Page() {
             <div className="flex flex-row flex-1 justify-between py-16 px-40 h-full gap-16">
                 <div className='flex flex-col justify-center gap-8'>
                     <div className='flex flex-col gap-4'>
-                        <div className='font-clarys leading-[120px] font-bold text-greeting text-left'>
+                        <div className='font-clarys leading-[120px] font-bold text-greetingBig text-left'>
                             Meet <span className='text-gradient'> Clarys.AI </span>
                         </div>
                         <div className="self-stretch text-primary text-[32px] font-normal font-clarys leading-8">your OpenGov AI assistant</div>

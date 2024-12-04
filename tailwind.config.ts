@@ -24,10 +24,15 @@ const config: Config = {
                 sm: 'calc(var(--radius) - 4px)',
             },
             fontSize: {
-                greeting: '120px',
+                greetingBig: '120px',
+                greetingMedium: '80px',
             },
             spacing: {
                 '40': '160px', // Add custom value for 160px padding
+            },
+            width: {
+                card: '480px',
+                fullCard: '1280px',
             },
             boxShadow: {
                 card: "0 8px 16px 0 #11121429",
@@ -36,6 +41,7 @@ const config: Config = {
                 backgroundOpac: 'var(--background-op)',
                 background: 'var(--background-op)',
                 warning: 'var(--warning)',
+                disabled: 'var(--disabled)',
                 foreground: 'hsl(var(--foreground))',
                 card: {
                     DEFAULT: 'hsl(var(--card))',

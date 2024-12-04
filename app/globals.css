@@ -46,6 +46,7 @@ html {
   :root {
     --background-op: var(--color-bg-grey-opac-88);
     --background: var(--color-bg-grey);
+    --disabled: var(--color-text-placeholder);
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
@@ -169,6 +170,7 @@ html {
 
 .bg-card-panel {
   box-shadow: 0 8px 16px 0 #11121429;
+  max-height: calc(100vh - 128px);
 }
 
 .inputField {

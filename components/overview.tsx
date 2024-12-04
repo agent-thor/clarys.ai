@@ -1,26 +1,17 @@
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+export const Overview = ({
+                             userName,
+                         }: {
+    userName: string;
+}) => {
 
-import { MessageIcon, VercelIcon } from './icons';
-
-export const Overview = () => {
-  return (
-    <motion.div
-      key="overview"
-      className="max-w-3xl mx-auto md:mt-20"
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      transition={{ delay: 0.5 }}
-    >
-      <div className="rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl">
-        <p className="flex flex-row justify-center gap-4 items-center">
-          <span>Welcome</span>
-        </p>
-        <p>
-          I am a chatbot skilled in Polkadot Governance. Ask me anything!
-        </p>
-      </div>
-    </motion.div>
-  );
+    return (
+        <div className='flex flex-col gap-4'>
+            <div className='font-clarys leading-[80px] font-bold text-greetingMedium text-left'>
+                Hello, <span className='text-gradient'>{userName}! </span>
+            </div>
+            <div className="self-stretch text-primary text-[24px] font-bold font-clarys leading-6">What can I do for you
+                today?
+            </div>
+        </div>
+    );
 };
