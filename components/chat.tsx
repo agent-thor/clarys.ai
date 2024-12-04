@@ -4,7 +4,7 @@ import {Message, useAssistant} from 'ai/react';
 import type {Attachment, ChatRequestOptions, CreateMessage} from 'ai';
 import {AnimatePresence} from 'framer-motion';
 import React, {useState} from 'react';
-import useSWR, {useSWRConfig} from 'swr';
+import useSWR from 'swr';
 import {useWindowSize} from 'usehooks-ts';
 
 import {ChatHeader} from '@/components/chat-header';
@@ -21,16 +21,12 @@ import {Overview} from "@/components/overview";
 export function Chat({
                          id,
                          initialMessages,
-                         selectedModelId,
                          user,
                      }: {
     id: string;
     initialMessages: Array<Message>;
-    selectedModelId: string;
     user: User;
 }) {
-    const {mutate} = useSWRConfig();
-
     const {
         status,
         messages: assistantMessages,
@@ -95,12 +91,13 @@ export function Chat({
         <>
             <div className="flex flex-row flex-1 align-middle justify-center py-16 h-full gap-16">
                 <CardPanel fullWidth={true} blur={'16px'}>
-                    <ChatHeader selectedModelId={selectedModelId}/>
+                    <ChatHeader userName={user?.name ? user.name : (user?.email ? user.email : '')}/>
                     <div
                         ref={messagesContainerRef}
-                        className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
+                        className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-auto pt-4"
                     >
-                        {messages.length === 0 && <Overview userName={user?.name ? user.name : (user?.email ? user.email : '') }/>}
+                        {messages.length === 0 &&
+                            <Overview userName={user?.name ? user.name : (user?.email ? user.email : '')}/>}
 
                         {messages.map((message, index) => (
                             <PreviewMessage
@@ -129,7 +126,7 @@ export function Chat({
                             className="shrink-0 min-w-[24px] min-h-[24px]"
                         />
                     </div>
-                    <form className="flex mx-auto px-4 bg-background gap-2 w-full">
+                    <form className="flex mx-auto bg-background gap-2 w-full">
                         <MultimodalInput
                             chatId={id}
                             input={input}

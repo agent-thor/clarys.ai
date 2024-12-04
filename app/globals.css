@@ -26,7 +26,6 @@ html {
   right: 0;
   bottom: 0;
   left: 0;
-  overflow: hidden;
 }
 
 /*@media (prefers-color-scheme: dark) {*/
@@ -47,13 +46,14 @@ html {
   :root {
     --background-op: var(--color-bg-grey-opac-88);
     --background: var(--color-bg-grey);
+    --disabled: var(--color-text-placeholder);
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     --primary: var(--color-text);
-    --primary-foreground: var(--color-text-placeholder);
+    --primary-foreground: 0 0% 98%;
     --secondary: 213 100% 96%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;

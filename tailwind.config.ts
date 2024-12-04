@@ -41,6 +41,7 @@ const config: Config = {
                 backgroundOpac: 'var(--background-op)',
                 background: 'var(--background-op)',
                 warning: 'var(--warning)',
+                disabled: 'var(--disabled)',
                 foreground: 'hsl(var(--foreground))',
                 card: {
                     DEFAULT: 'hsl(var(--card))',
@@ -52,7 +53,7 @@ const config: Config = {
                 },
                 primary: {
                     DEFAULT: 'var(--primary)',/*hsl(var(--primary))*/
-                    foreground: 'var(--primary-foreground)',
+                    foreground: 'hsl(var(--primary-foreground))',
                 },
                 secondary: {
                     DEFAULT: 'hsl(var(--secondary))',
