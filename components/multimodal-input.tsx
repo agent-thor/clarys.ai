@@ -45,7 +45,7 @@ const suggestedActions = [
   {
     image: "/images/categories.png",
     title: "Show me all",
-    label: "categories",
+    label: "Categories",
     action: "List all categories",
   },
 ];

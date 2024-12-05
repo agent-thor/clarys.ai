@@ -98,7 +98,7 @@ export function Chat({
   return (
     <>
       <div className="flex flex-row flex-1 align-middle justify-center py-16 h-full gap-16">
-        <CardPanel fullWidth={true} blur={"16px"}>
+        <CardPanel fullWidth={true}>
           <ChatHeader userName={userName} />
           <div
             ref={messagesContainerRef}

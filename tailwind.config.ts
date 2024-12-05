@@ -40,6 +40,7 @@ const config: Config = {
             colors: {
                 backgroundOpac: 'var(--background-op)',
                 background: 'var(--background-op)',
+                overlay: 'var(--background-overlay)',
                 warning: 'var(--warning)',
                 disabled: 'var(--disabled)',
                 foreground: 'hsl(var(--foreground))',

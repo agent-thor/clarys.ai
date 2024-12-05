@@ -9,7 +9,7 @@ interface CardPanelProps {
     blur?: string;
 }
 
-const CardPanel: React.FC<CardPanelProps> = ({children, fullWidth = false, blur = '32px'}) => {
+const CardPanel: React.FC<CardPanelProps> = ({children, fullWidth = false, blur = '16px'}) => {
     let classes = 'flex flex-col p-16 gap-8 text-sm leading-6 font-normal font-clarys rounded-[48px] bg-card-panel bg-backgroundOpac max-w-[1280px] h-full min-h-[820px]';
     classes += ` backdrop-blur-[${blur}]`;
     classes += fullWidth ? ' w-fullCard' : ' w-card';
