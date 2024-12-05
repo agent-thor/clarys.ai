@@ -61,6 +61,7 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
+        <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
       </head>
       <body className="antialiased">
         <ThemeProvider
