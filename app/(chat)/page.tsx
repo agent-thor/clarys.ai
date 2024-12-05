@@ -1,7 +1,7 @@
-import {Chat} from '@/components/chat';
-import {generateUUID} from '@/lib/utils';
-import {auth} from "@/app/(auth)/auth";
-import {notFound} from "next/navigation";
+import { Chat } from "@/components/chat";
+import { generateUUID } from "@/lib/utils";
+import { auth } from "@/app/(auth)/auth";
+import { notFound } from "next/navigation";
 
 export default async function Page() {
   const id = generateUUID();
@@ -16,7 +16,7 @@ export default async function Page() {
     <Chat
       key={id}
       id={id}
-      user={session.user}
+      userName={session.user.name || ""}
       initialMessages={[]}
     />
   );
