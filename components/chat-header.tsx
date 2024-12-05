@@ -11,7 +11,7 @@ export function ChatHeader({userName}: { userName: string }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const [menu2Open, setMenu2Open] = useState(false);
 
-    const handleMenu1Click = (ev) => {
+    const handleMenu1Click = () => {
         setMenuOpen(!menuOpen);
         setMenu2Open(false)
     }
@@ -29,7 +29,7 @@ export function ChatHeader({userName}: { userName: string }) {
         alert('why clarys');
     };
 
-    // const onClickOutside = (ev) => {
+    // const onClickOutside = () => {
     //     setMenuOpen(false);
     //     setMenu2Open(false);
     // }
