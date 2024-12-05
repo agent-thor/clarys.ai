@@ -33,7 +33,9 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   return (
     <Chat
       id={chat.id}
-      userName={session.user.name || ""}
+      userName={
+        session.user.name ? session.user.name : session.user.email || ""
+      }
       initialMessages={convertToUIMessages(messagesFromDb)}
     />
   );

@@ -16,7 +16,9 @@ export default async function Page() {
     <Chat
       key={id}
       id={id}
-      userName={session.user.name || ""}
+      userName={
+        session.user.name ? session.user.name : session.user.email || ""
+      }
       initialMessages={[]}
     />
   );
