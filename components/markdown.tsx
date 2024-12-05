@@ -110,9 +110,14 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
     },
   };
 
+  // remove OpenAIs internal annotations
+  const transformedText = children.replace(/【(\d+:\d+)†(.*?)】/g, (match, p1, p2) => {
+    return ``;
+  });
+
   return (
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-      {children}
+      {transformedText}
     </ReactMarkdown>
   );
 };
