@@ -46,7 +46,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
+    <html className='hiddenScroll'
       lang="en"
       // `next-themes` injects an extra classname to the body element to avoid
       // visual flicker before hydration. Hence the `suppressHydrationWarning`

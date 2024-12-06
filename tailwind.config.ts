@@ -39,7 +39,7 @@ const config: Config = {
             },
             colors: {
                 backgroundOpac: 'var(--background-op)',
-                background: 'var(--background-op)',
+                background: 'var(--background)',
                 overlay: 'var(--background-overlay)',
                 warning: 'var(--warning)',
                 disabled: 'var(--disabled)',

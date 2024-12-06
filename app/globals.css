@@ -225,10 +225,20 @@ html {
   color: var(--color-text);
 }
 
-.bg-blur20 {
-  backdrop-filter: blur(20px);
+.chatShadow {
+  box-shadow: 0 -2px 8px 0 rgba(255, 255, 255, 0.32), 0 2 4px 0 rgba(17, 18, 20, 0.16);
 }
 
-.bg-blur16 {
-  backdrop-filter: blur(16px);
+.userText {
+  background: linear-gradient(180deg, #E6E8EB -0.53%, #DCDEE0 99.47%);
+}
+
+.hiddenScroll {
+  overflow: auto;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+
+.hiddenScroll::-webkit-scrollbar {
+  display: none; /* Hides the scrollbar in WebKit browsers */
 }
