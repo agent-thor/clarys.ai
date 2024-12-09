@@ -97,6 +97,17 @@ export async function POST(request: Request) {
           (() => {
             throw new Error('ASSISTANT_ID is not set');
           })(),
+          
+        tools: [
+          {
+              "type": "file_search",
+              "file_search": {
+                  "ranking_options": {
+                      "score_threshold": 0.75
+                  }
+              }
+          }
+        ]
       });
       
 
