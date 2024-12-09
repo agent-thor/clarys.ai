@@ -74,7 +74,7 @@ export default async function RootLayout({
           <OverlayProvider>
             {children}
           </OverlayProvider>
-
+          <Analytics/>
         </ThemeProvider>
       </body>
     </html>
