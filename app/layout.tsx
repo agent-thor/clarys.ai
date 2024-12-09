@@ -6,9 +6,10 @@ import { ThemeProvider } from '@/components/theme-provider';
 import './globals.css';
 import {OverlayProvider} from "@/components/overlay";
 import React from "react";
+import { Analytics } from "@vercel/analytics/react"
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
+  metadataBase: new URL('https://clarys.ai'),
   title: 'Clarys.AI',
   description: 'Polkadot governance chatbot',
 };
