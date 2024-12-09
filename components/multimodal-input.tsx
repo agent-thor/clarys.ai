@@ -21,7 +21,7 @@ import {
 import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
-import { sanitizeUIMessages } from "@/lib/utils";
+import {cn, sanitizeUIMessages} from "@/lib/utils";
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
 import { PreviewAttachment } from "./preview-attachment";
@@ -212,7 +212,6 @@ export function MultimodalInput({
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
-          <>
             <div className="grid sm:grid-cols-3 gap-8 w-full">
               {suggestedActions.map((suggestedAction, index) => (
                 <motion.div
@@ -248,21 +247,16 @@ export function MultimodalInput({
                 </motion.div>
               ))}
             </div>
-            <div className="font-bold text-center text-[24px] leading-6">
-              {" "}
-              or{" "}
-            </div>
-          </>
         )}
 
-      <input
-        type="file"
-        className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
-        ref={fileInputRef}
-        multiple
-        onChange={handleFileChange}
-        tabIndex={-1}
-      />
+      {/*<input*/}
+      {/*  type="file"*/}
+      {/*  className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"*/}
+      {/*  ref={fileInputRef}*/}
+      {/*  multiple*/}
+      {/*  onChange={handleFileChange}*/}
+      {/*  tabIndex={-1}*/}
+      {/*/>*/}
 
       {/*{(attachments.length > 0 || uploadQueue.length > 0) && (
                 <div className="flex flex-row gap-2 overflow-x-scroll items-end">
@@ -289,8 +283,8 @@ export function MultimodalInput({
         placeholder="Ask me anything about proposals, their content & feasibility"
         value={input}
         onChange={handleInput}
-        className={cx(
-          // 'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl text-base bg-muted',
+        className={cn(
+          // 'min-h-[80px] max-h-[80px] overflow-hidden resize-none rounded-2xl p-[30px] pr-[80px] border border-white/32 border-solid outline-none focus-visible:outline-none disabled:cursor-not-allowed text-[14px] leading-4 shadow-inner inputField' +
           className
         )}
         rows={1}
@@ -310,7 +304,7 @@ export function MultimodalInput({
 
       {isLoading ? (
         <Button
-          className="rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 border dark:border-zinc-600"
+          className="rounded-2xl p-4 h-fit absolute bottom-4 right-4 border"
           onClick={(event) => {
             event.preventDefault();
             stop();
@@ -321,7 +315,7 @@ export function MultimodalInput({
         </Button>
       ) : (
         <Button
-          className="rounded-full p-1.5 h-fit absolute bottom-2 right-2 m-0.5 border dark:border-zinc-600"
+          className="rounded-2xl p-4 h-fit absolute bottom-4 right-4 border"
           onClick={(event) => {
             event.preventDefault();
             submitForm();
@@ -331,12 +325,13 @@ export function MultimodalInput({
           <Image
             src="/images/search-icon.png"
             alt="logomark"
-            width={24}
-            height={24}
+            width={14}
+            height={14}
           ></Image>
         </Button>
       )}
 
+      {/* Attach button */}
       {/*<Button*/}
       {/*  className="rounded-full p-1.5 h-fit absolute bottom-2 right-11 m-0.5 dark:border-zinc-700"*/}
       {/*  onClick={(event) => {*/}

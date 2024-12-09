@@ -9,7 +9,9 @@
 
   --color-bg-grey: #e6e8eb;
   --color-bg-grey-opac-88: #e6e8ebe0;
-  --color-bg-overlay: rgba(255, 255, 255, 0.40);
+  --color-bg-white-op40: rgba(255, 255, 255, 0.40);
+  --color-white-op32: rgba(255, 255, 255, 0.32);
+  --bg-gradient: linear-gradient(180deg, #E6E8EB -0.53%, #DCDEE0 99.47%);
   --clarysFont: Montserrat, sans-serif;
   --color-text: #121214;
   --color-text-placeholder: #12121466;
@@ -46,7 +48,7 @@ html {
 @layer base {
   :root {
     --background-op: var(--color-bg-grey-opac-88);
-    --background-overlay: var(--color-bg-overlay);
+    --background-overlay: var(--color-bg-white-op40);
     --background: var(--color-bg-grey);
     --disabled: var(--color-text-placeholder);
     --foreground: 240 10% 3.9%;
@@ -117,7 +119,7 @@ html {
     /*--sidebar-border: 240 3.7% 15.9%;*/
     /*--sidebar-ring: 217.2 91.2% 59.8%;*/
     --background-op: var(--color-bg-grey-opac-88);
-    --background-overlay: var(--color-bg-overlay);
+    --background-overlay: var(--color-bg-white-op40);
     --background: var(--color-bg-grey);
     --disabled: var(--color-text-placeholder);
     --foreground: 240 10% 3.9%;
@@ -213,7 +215,7 @@ html {
 }
 
 .inputField {
-  background: linear-gradient(180deg, #DCDEE0 -0.53%, #E6E8EB 99.47%);
+  background: var(--bg-gradient);
   box-shadow: 0 -4px 8px 0 #FFFFFF52 inset, 0 4px 16px 0 #11121414 inset;
   border: 1px solid #FFFFFF52;
 }
@@ -221,7 +223,7 @@ html {
 .buttonShadow {
   border-color: #FFFFFF52;
   box-shadow: 0 2px 4px 0 #11121429, 0 -2px 8px 0 #FFFFFF52;
-  background: linear-gradient(180deg, #E6E8EB -0.53%, #DCDEE0 99.47%);
+  background: var(--bg-gradient);
   color: var(--color-text);
 }
 
@@ -230,7 +232,7 @@ html {
 }
 
 .userText {
-  background: linear-gradient(180deg, #E6E8EB -0.53%, #DCDEE0 99.47%);
+  background: var(--bg-gradient);
 }
 
 .hiddenScroll {
