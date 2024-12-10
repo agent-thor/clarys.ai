@@ -228,7 +228,7 @@ html {
 }
 
 .chatShadow {
-  box-shadow: 0 -2px 8px 0 #FFFFFF52, 0 2 4px 0 #11121429;
+  box-shadow: 0 2px 4px 0 #11121429, 0 -2px 8px 0 #FFFFFF52;
 }
 
 .userText {

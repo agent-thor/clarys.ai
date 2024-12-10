@@ -40,11 +40,11 @@ export const PreviewMessage = ({
     >
       <div
           className={cn(
-              'w-full rounded-tl-2xl rounded-tr-2xl border border-white/30 justify-start items-end gap-4 chatShadow text-primary flex ' +
+              'w-full rounded-tl-2xl rounded-tr-2xl border border-white/30 justify-start items-end gap-4 chatShadow buttonShadow text-primary flex ' +
               'py-6 px-8 font-normal text-[14px] leading-6 ' +
               // 'group-data-[role=user]/message:userText ' +
               'group-data-[role=user]/message:w-fit group-data-[role=user]/message:ml-auto group-data-[role=user]/message:rounded-bl-2xl ' +
-              'group-data-[role=assistant]/message:rounded-br-2xl group-data-[role=assistant]/message:bg-background group-data-[role=assistant]/message:buttonShadow ' +
+              'group-data-[role=assistant]/message:rounded-br-2xl group-data-[role=assistant]/message:bg-background ' +
               (message.role === 'user' ? 'userText ' : '')
         )}
       >
