@@ -266,7 +266,7 @@ const Sidebar = React.forwardRef<
         >
           <div
             data-sidebar="sidebar"
-            className="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+            className="flex h-full w-full flex-col bg-sidebar backdrop-blur-[32px] group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
           >
             {children}
           </div>
@@ -375,7 +375,7 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn('flex flex-col gap-2 p-2', className)}
+      className={cn('flex flex-col gap-2 p-2 bg-backgroundOpac ', className)}
       {...props}
     />
   );
@@ -421,7 +421,7 @@ const SidebarContent = React.forwardRef<
       ref={ref}
       data-sidebar="content"
       className={cn(
-        'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
+        'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden bg-backgroundOpac',
         className,
       )}
       {...props}
@@ -522,7 +522,7 @@ const SidebarMenuItem = React.forwardRef<
   <li
     ref={ref}
     data-sidebar="menu-item"
-    className={cn('group/menu-item relative', className)}
+    className={cn('group/menu-item relative text-[14px] font-clarys', className)}
     {...props}
   />
 ));

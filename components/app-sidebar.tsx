@@ -25,26 +25,16 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar className="group-data-[side=left]:border-r-0">
+    <Sidebar className="group-data-[side=left]:border-r-0 chatShadow">
       <SidebarHeader>
         <SidebarMenu>
-          <div className="flex flex-row justify-between items-center">
-            <Link
-              href="/"
-              onClick={() => {
-                setOpenMobile(false);
-              }}
-              className="flex flex-row gap-3 items-center"
-            >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
+          <div className="flex flex-row justify-between items-center ">
+              <span className="text-[16px] font-bold px-2 rounded-md font-clarys ">
                 Clarys.AI
               </span>
-            </Link>
-            <BetterTooltip content="New Chat" align="start">
               <Button
-                variant="ghost"
                 type="button"
-                className="p-2 h-fit"
+                className="rounded-xl p-2 h-fit border"
                 onClick={() => {
                   setOpenMobile(false);
                   router.push('/');
@@ -53,7 +43,6 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               >
                 <PlusIcon />
               </Button>
-            </BetterTooltip>
           </div>
         </SidebarMenu>
       </SidebarHeader>
