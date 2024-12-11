@@ -16,7 +16,7 @@ export default async function Page() {
   const tourCompleted = cookieStore.get("tourCompleted")?.value === "true";
   return (
     <>
-      {tourCompleted ? (
+      {/*{tourCompleted ? (*/}
         <Chat
           key={id}
           id={id}
@@ -25,14 +25,14 @@ export default async function Page() {
           }
           initialMessages={[]}
         />
-      ) : (
-        <Tour
-          userName={
-            session.user.name ? session.user.name : session.user.email || ""
-          }
-          tourNeeded={!tourCompleted}
-        ></Tour>
-      )}
+      {/*) : (*/}
+      {/*  <Tour*/}
+      {/*    userName={*/}
+      {/*      session.user.name ? session.user.name : session.user.email || ""*/}
+      {/*    }*/}
+      {/*    tourNeeded={!tourCompleted}*/}
+      {/*  ></Tour>*/}
+      {/*)}*/}
     </>
   );
 }
