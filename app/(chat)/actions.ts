@@ -9,6 +9,10 @@ export async function saveModelId(model: string) {
   const cookieStore = await cookies();
   cookieStore.set('model-id', model);
 }
+export async function saveTourNeeded(tourNeeded: boolean) {
+  const cookieStore = await cookies();
+  cookieStore.set('tourCompleted', !tourNeeded);
+}
 
 export async function generateTitleFromUserMessage({
   message,
