@@ -181,7 +181,9 @@ export default function TourPanel({
     } else {
       console.warn(dontShowOnStartup);
       saveTourCompleted(dontShowOnStartup);
-      router.push("/");
+      setTimeout(() => {
+        router.push("/");
+      }, 500);
     }
   };
 
