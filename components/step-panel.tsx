@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { saveTourNeeded } from "@/app/(chat)/actions";
+import { saveTourCompleted } from "@/app/(chat)/actions";
 import { useRouter } from "next/navigation";
 
 export default function TourPanel({
@@ -163,13 +163,24 @@ export default function TourPanel({
   const steps = [step1, step2, step3];
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [isShowTourOnStart, setIsShowTourOnStart] = useState(true);
+  const [dontShowOnStartup, setDontShowOnStartup] = useState(!tourNeeded);
+
+  useEffect(() => {
+    if (tourNeeded !== null) {
+      setDontShowOnStartup(tourNeeded);
+    }
+  }, []);
+
+  // useEffect(() => {
+  //   tourNeeded = dontShowOnStartup;
+  // }, [dontShowOnStartup]);
 
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      saveTourNeeded(isShowTourOnStart);
+      console.warn(dontShowOnStartup);
+      saveTourCompleted(dontShowOnStartup);
       router.push("/");
     }
   };
@@ -180,9 +191,9 @@ export default function TourPanel({
     }
   };
 
-  const onShowTourOnStartChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsShowTourOnStart(e.target.checked);
-    saveTourNeeded(!e.target.checked);
+  const onDontShowOnStartupChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDontShowOnStartup(e.target.checked);
+    saveTourCompleted(e.target.checked);
   };
 
   return (
@@ -201,12 +212,12 @@ export default function TourPanel({
 
           <input
             type="checkbox"
-            id="showTourOnStart"
-            checked={isShowTourOnStart}
-            onChange={(e) => onShowTourOnStartChanged(e)}
+            id="dontShowOnStartup"
+            checked={dontShowOnStartup}
+            onChange={(e) => onDontShowOnStartupChanged(e)}
             className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
           />
-          <label htmlFor="showTourOnStart" className="font-clarys text-[14px]">
+          <label htmlFor="dontShowOnStartup" className="font-clarys text-[14px]">
             Do not show on next startup
           </label>
         </div>

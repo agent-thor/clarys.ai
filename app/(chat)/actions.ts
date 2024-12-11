@@ -9,12 +9,12 @@ export async function saveModelId(model: string) {
   const cookieStore = await cookies();
   cookieStore.set('model-id', model);
 }
-export async function saveTourNeeded(tourNeeded: boolean) {
+export async function saveTourCompleted(tourCompleted: boolean) {
   const cookieStore = await cookies();
-  cookieStore.set('tourCompleted', String(!tourNeeded));
+  cookieStore.set('tourCompleted', String(tourCompleted));
 }
 
-export async function generateTitleFromUserMessage({
+export async function generateTitleFromUserMessage({ 
   message,
 }: {
   message: string;

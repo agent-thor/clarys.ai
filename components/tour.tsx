@@ -5,7 +5,7 @@ import { ChatHeader } from "@/components/chat-header";
 import React from "react";
 import TourPanel from "@/components/step-panel";
 
-export function Tour({ userName, tourNeeded}: { userName: string, tourNeeded?: boolean }) {
+export function Tour({ userName, tourNeeded}: { userName: string, tourNeeded: boolean }) {
   return (
     <>
       <div className="flex flex-row flex-1 align-middle justify-center py-16 h-full gap-16">
