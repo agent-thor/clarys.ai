@@ -74,11 +74,11 @@ const ChatItem = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent side="bottom" align="end">
         <DropdownMenuItem
-          className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
+          className="cursor-pointer bg-background focus:bg-background/15 focus:underline p-4"
           onSelect={() => onDelete(chat.id)}
         >
           <TrashIcon />
-          <span>Delete</span>
+          <span className='pt-1 text-[14px] text-clarys'>Delete</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -174,8 +174,8 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
-            <div>
+          <div className="text-[16px] text-sidebar-foreground/50 w-full flex flex-row justify-center items-center gap-2 pr-1">
+            <div className='pl-2'>
               Your conversations will appear here once you start chatting!
             </div>
           </div>

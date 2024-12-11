@@ -40,7 +40,7 @@ export const OverlayProvider: React.FC<OverlayProviderProps> = ({ children }) =>
         <Overlay.Provider value={{ isOpen, openOverlay, closeOverlay, content }}>
             {children}
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-80 backdrop-blur-[20px]">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/20 backdrop-blur-[20px] ">
                     <div className="relative w-full max-w-md bg-background rounded-[48px] border-[#ffffff52] border">
                         <button
                             onClick={closeOverlay}

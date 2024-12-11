@@ -181,7 +181,7 @@ export const ThinkingMessage = () => {
         </div>
 
         <div className="flex flex-col gap-2 w-full">
-          <div className="flex flex-col gap-4 text-muted-foreground">
+          <div className="flex flex-col gap-4 text-muted-foreground font-clarys text-[14px] leading-4">
             Thinking...
           </div>
         </div>
