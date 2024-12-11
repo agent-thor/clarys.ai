@@ -11,7 +11,7 @@ export async function saveModelId(model: string) {
 }
 export async function saveTourNeeded(tourNeeded: boolean) {
   const cookieStore = await cookies();
-  cookieStore.set('tourCompleted', !tourNeeded);
+  cookieStore.set('tourCompleted', String(!tourNeeded));
 }
 
 export async function generateTitleFromUserMessage({
