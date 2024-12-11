@@ -3,15 +3,13 @@ import { Button } from "@/components/ui/button";
 import { saveTourNeeded } from "@/app/(chat)/actions";
 import { useRouter } from "next/navigation";
 
-interface TourPanelProps {
-  className?: string;
-  tourNeeded: boolean;
-}
-
 export default function TourPanel({
   className,
   tourNeeded,
-}: React.FC<TourPanelProps>) {
+}: {
+  className?: string;
+  tourNeeded: boolean;
+}) {
   const router = useRouter();
 
   const step1 = (
