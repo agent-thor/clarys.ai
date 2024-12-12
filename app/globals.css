@@ -249,3 +249,12 @@ html {
   background: var(--bg-gradient);
   box-shadow: 0 -4px 8px 0 #ffffff52 inset, 0 4px 16px 0 #11121414 inset;
 }
+
+.hiddenMessage {
+  visibility: hidden;
+}
+
+input.invalid {
+  border: 1px solid var(--warning);
+  color:  var(--warning);
+}
