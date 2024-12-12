@@ -5,7 +5,7 @@ import { signOut } from "next-auth/react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { saveTourCompleted } from "@/app/(chat)/actions";
+import { saveTourCompleted, saveTourNeeded } from "@/app/(chat)/actions";
 import { useRouter } from "next/navigation";
 
 export function ChatHeader({ userName }: { userName: string }) {
@@ -28,6 +28,7 @@ export function ChatHeader({ userName }: { userName: string }) {
   };
 
   const handleWhyClarys = () => {
+    saveTourNeeded(true);
     saveTourCompleted(false);
     setTimeout(() => {
       router.push("/");

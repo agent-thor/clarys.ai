@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useEffect } from "react";
 import { Slot } from "@radix-ui/react-slot";
-import { type VariantProps, cva } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,6 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { clearCookies, saveTourCompleted } from "@/app/(chat)/actions";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -327,6 +329,21 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
+  useEffect(() => {
+    // Needed for page tour
+    saveTourCompleted(false);
+    const handlePageClose = () => {
+      clearCookies();
+    };
+
+    // Listen for page unload or refresh
+    window.addEventListener("beforeunload", handlePageClose);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("beforeunload", handlePageClose);
+    };
+  }, []);
   return (
     <main
       ref={ref}

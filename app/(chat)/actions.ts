@@ -6,12 +6,21 @@ import { cookies } from 'next/headers';
 import { customModel } from '@/lib/ai';
 
 export async function saveModelId(model: string) {
-  const cookieStore = await cookies();
-  cookieStore.set('model-id', model);
+  const cookieStore = await cookies(); 
+  cookieStore.set('model-id', model); 
 }
 export async function saveTourCompleted(tourCompleted: boolean) {
   const cookieStore = await cookies();
   cookieStore.set('tourCompleted', String(tourCompleted));
+}
+export async function saveTourNeeded(tourNeeded: boolean) {
+  const cookieStore = await cookies();
+  cookieStore.set('tourNeeded', String(tourNeeded));
+}
+
+export async function clearCookies() {
+  const cookieStore = await cookies();
+  cookieStore.set('tourCompleted', 'false');
 }
 
 export async function generateTitleFromUserMessage({ 

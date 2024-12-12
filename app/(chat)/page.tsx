@@ -14,25 +14,31 @@ export default async function Page() {
     return notFound();
   }
   const tourCompleted = cookieStore.get("tourCompleted")?.value === "true";
-  return (
-    <>
-      {tourCompleted ? (
-        <Chat
-          key={id}
-          id={id}
-          userName={
-            session.user.name ? session.user.name : session.user.email || ""
-          }
-          initialMessages={[]}
-        />
-      ) : (
-        <Tour
-          userName={
-            session.user.name ? session.user.name : session.user.email || ""
-          }
-          tourNeeded={!tourCompleted}
-        ></Tour>
-      )}
-    </>
+  const tourNeeded = cookieStore.get("tourNeeded")?.value === "true";
+
+  console.log("tourNeeded", tourNeeded);
+  console.log("tourCompleted", tourCompleted);
+  console.log("chat needed", tourNeeded && tourCompleted);
+
+  const chatPage = (
+    <Chat
+      key={id}
+      id={id}
+      userName={
+        session.user.name ? session.user.name : session.user.email || ""
+      }
+      initialMessages={[]}
+    />
   );
+
+  const tourPage = (
+    <Tour
+      userName={
+        session.user.name ? session.user.name : session.user.email || ""
+      }
+      tourNeeded={!tourCompleted}
+    ></Tour>
+  );
+
+  return <>{tourNeeded && !tourCompleted ? tourPage : chatPage}</>;
 }
