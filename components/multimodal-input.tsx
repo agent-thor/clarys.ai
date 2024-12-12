@@ -234,7 +234,7 @@ export function MultimodalInput({
                     }}
                     className="border flex-1 gap-1 sm:flex-col w-full h-auto p-8"
                   >
-                    <div className="w-[60px] h-[60px] pb-4">
+                    <div className="w-[60px] h-[60px] pb-4 items-center justify-center flex align-middle">
                       <img src={suggestedAction.image} alt="logo"></img>
                     </div>
                     <span className="text-[14px] font-normal leading-4">
