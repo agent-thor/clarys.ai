@@ -1,9 +1,8 @@
 "use client";
 
+import { ChatHeader } from "@/components/chat-header";
+import TourPanel from "@/components/tour-panel";
 import CardPanel from "@/components/ui/card-panel";
-import {ChatHeader} from "@/components/chat-header";
-import React from "react";
-import TourPanel from "@/components/step-panel";
 
 export function Tour({
   userName,

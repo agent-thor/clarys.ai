@@ -162,15 +162,17 @@ export default function TourPanel({
   const [currentStep, setCurrentStep] = useState(0);
   const [dontShowOnStartup, setDontShowOnStartup] = useState(!tourNeeded);
 
+  const buttonTexts = [
+    {previous: '', next: 'See What' },
+    {previous: 'Why Clarys', next: 'Learn How' },
+    {previous: 'See What', next: 'Start using Clarys.AI' },
+  ]
+
   useEffect(() => {
     if (tourNeeded !== null) {
       setDontShowOnStartup(tourNeeded);
     }
   }, []);
-
-  // useEffect(() => {
-  //   tourNeeded = dontShowOnStartup;
-  // }, [dontShowOnStartup]);
 
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
@@ -207,11 +209,6 @@ export default function TourPanel({
       </div>
       <div className="stepToolbar w-full h-16 justify-start items-start gap-8 inline-flex">
         <div className="grow shrink basis-0 h-12 justify-start items-center gap-2 flex">
-          {/*<div className="p-4 bg-gradient-to-b from-[#dbdde0] to-[#e6e8eb] rounded-2xl shadow-inner border border-white/30 justify-center items-center gap-4 flex">*/}
-          {/*  <div className="w-4 h-4 pl-[2.19px] pr-[1.53px] pt-[3.53px] pb-[3.06px] justify-center items-center flex" />*/}
-          {/*</div>*/}
-          {/*<div className="text-primary text-[14px] font-normal font-clarys leading-none">Do not show on next startup</div>*/}
-
           <label className="relative flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -248,7 +245,7 @@ export default function TourPanel({
                 height={5.33}
               ></Image>
               <span className="text-clarys text-primary text-[14px]">
-                Previous
+                {buttonTexts[currentStep].previous}
               </span>
             </Button>
           )}
@@ -256,7 +253,7 @@ export default function TourPanel({
             onClick={nextStep}
             className="w-[240px] h-[48px] rounded-2xl px-8 py-4 border"
           >
-            <span className="text-clarys text-primary text-[14px]">Next</span>
+            <span className="text-clarys text-primary text-[14px]">{buttonTexts[currentStep].next}</span>
             <Image
               src="/images/next.svg"
               alt="next"
