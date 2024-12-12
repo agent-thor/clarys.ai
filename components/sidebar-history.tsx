@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
-import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
-import type { User } from 'next-auth';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import useSWR from 'swr';
+import { isToday, isYesterday, subMonths, subWeeks } from "date-fns";
+import Link from "next/link";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import type { User } from "next-auth";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import useSWR from "swr";
 
-import { MoreHorizontalIcon, TrashIcon } from '@/components/icons';
+import { MoreHorizontalIcon, TrashIcon } from "@/components/icons";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,13 +18,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -33,9 +33,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar';
-import type { Chat } from '@/lib/db/schema';
-import { fetcher } from '@/lib/utils';
+} from "@/components/ui/sidebar";
+import type { Chat } from "@/lib/db/schema";
+import { fetcher } from "@/lib/utils";
 
 type GroupedChats = {
   today: Chat[];
@@ -78,7 +78,7 @@ const ChatItem = ({
           onSelect={() => onDelete(chat.id)}
         >
           <TrashIcon />
-          <span className='pt-1 text-[14px] text-clarys'>Delete</span>
+          <span className="pt-1 text-[14px] text-clarys">Delete</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -93,7 +93,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     data: history,
     isLoading,
     mutate,
-  } = useSWR<Array<Chat>>(user ? '/api/history' : null, fetcher, {
+  } = useSWR<Array<Chat>>(user ? "/api/history" : null, fetcher, {
     fallbackData: [],
   });
 
@@ -106,26 +106,26 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const router = useRouter();
   const handleDelete = async () => {
     const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
 
     toast.promise(deletePromise, {
-      loading: 'Deleting chat...',
+      loading: "Deleting chat...",
       success: () => {
         mutate((history) => {
           if (history) {
             return history.filter((h) => h.id !== id);
           }
         });
-        return 'Chat deleted successfully';
+        return "Chat deleted successfully";
       },
-      error: 'Failed to delete chat',
+      error: "Failed to delete chat",
     });
 
     setShowDeleteDialog(false);
 
     if (deleteId === id) {
-      router.push('/');
+      router.push("/");
     }
   };
 
@@ -158,7 +158,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                   className="h-4 rounded-md flex-1 max-w-[--skeleton-width] bg-sidebar-accent-foreground/10"
                   style={
                     {
-                      '--skeleton-width': `${item}%`,
+                      "--skeleton-width": `${item}%`,
                     } as React.CSSProperties
                   }
                 />
@@ -175,7 +175,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
       <SidebarGroup>
         <SidebarGroupContent>
           <div className="text-[16px] text-sidebar-foreground/50 w-full flex flex-row justify-center items-center gap-2 pr-1">
-            <div className='pl-2'>
+            <div className="pl-2">
               Your conversations will appear here once you start chatting!
             </div>
           </div>
@@ -213,7 +213,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
         lastWeek: [],
         lastMonth: [],
         older: [],
-      } as GroupedChats,
+      } as GroupedChats
     );
   };
 
@@ -230,7 +230,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                   <>
                     {groupedChats.today.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+                        <div className="px-2 py-1 text-[14px] text-sidebar-foreground/50">
                           Today
                         </div>
                         {groupedChats.today.map((chat) => (
@@ -250,7 +250,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.yesterday.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+                        <div className="px-2 py-1 text-[14px] text-sidebar-foreground/50 mt-6">
                           Yesterday
                         </div>
                         {groupedChats.yesterday.map((chat) => (
@@ -270,7 +270,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.lastWeek.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+                        <div className="px-2 py-1 text-[14px] text-sidebar-foreground/50 mt-6">
                           Last 7 days
                         </div>
                         {groupedChats.lastWeek.map((chat) => (
@@ -290,7 +290,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.lastMonth.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+                        <div className="px-2 py-1 text-[14px] text-sidebar-foreground/50 mt-6">
                           Last 30 days
                         </div>
                         {groupedChats.lastMonth.map((chat) => (
@@ -310,7 +310,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.older.length > 0 && (
                       <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
+                        <div className="px-2 py-1 text-[14px] text-sidebar-foreground/50 mt-6">
                           Older
                         </div>
                         {groupedChats.older.map((chat) => (

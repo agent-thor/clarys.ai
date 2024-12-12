@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { saveTourCompleted, saveTourNeeded } from "@/app/(chat)/actions";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function TourPanel({
   className,
@@ -204,20 +205,28 @@ export default function TourPanel({
       <div className="stepPanel shrink text-primary pb-16 flex flex-col flex-1 w-full min-h-[320px] h-auto overflow-y-scroll hiddenScroll">
         {steps[currentStep]}
       </div>
-      <div className="stepToolbar w-full h-12 justify-start items-start gap-8 inline-flex">
+      <div className="stepToolbar w-full h-16 justify-start items-start gap-8 inline-flex">
         <div className="grow shrink basis-0 h-12 justify-start items-center gap-2 flex">
           {/*<div className="p-4 bg-gradient-to-b from-[#dbdde0] to-[#e6e8eb] rounded-2xl shadow-inner border border-white/30 justify-center items-center gap-4 flex">*/}
           {/*  <div className="w-4 h-4 pl-[2.19px] pr-[1.53px] pt-[3.53px] pb-[3.06px] justify-center items-center flex" />*/}
           {/*</div>*/}
           {/*<div className="text-primary text-[14px] font-normal font-clarys leading-none">Do not show on next startup</div>*/}
 
-          <input
-            type="checkbox"
-            id="dontShowOnStartup"
-            checked={dontShowOnStartup}
-            onChange={(e) => onDontShowOnStartupChanged(e)}
-            className="w-4 h-4 text-primary border-gray-300 rounded-2xl focus:ring-blue-500"
-          />
+          <label className="relative flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              id="dontShowOnStartup"
+              checked={dontShowOnStartup}
+              onChange={(e) => onDontShowOnStartupChanged(e)}
+              className="peer hidden"
+            />
+            <div className="w-12 h-12 border border-white/30 rounded-2xl justify-center items-center gap-4 flex checkBoxEffects transition">
+              {/*peer-checked:border-white/70*/}
+              {dontShowOnStartup && (
+                <img src="/images/check.svg" className="peer-checked"></img>
+              )}
+            </div>
+          </label>
           <label
             htmlFor="dontShowOnStartup"
             className="font-clarys text-[14px]"
@@ -227,11 +236,34 @@ export default function TourPanel({
         </div>
         <div className="justify-start items-center gap-4 flex">
           {currentStep !== 0 && (
-            <Button onClick={prevStep} disabled={currentStep === 0}>
-              Previous
+            <Button
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className="w-[240px] h-[48px] rounded-2xl px-8 py-4 border"
+            >
+              <Image
+                src="/images/previous.svg"
+                alt="previous"
+                width={14.7}
+                height={5.33}
+              ></Image>
+              <span className="text-clarys text-primary text-[14px]">
+                Previous
+              </span>
             </Button>
           )}
-          <Button onClick={nextStep}>Next</Button>
+          <Button
+            onClick={nextStep}
+            className="w-[240px] h-[48px] rounded-2xl px-8 py-4 border"
+          >
+            <span className="text-clarys text-primary text-[14px]">Next</span>
+            <Image
+              src="/images/next.svg"
+              alt="next"
+              width={14.7}
+              height={5.33}
+            ></Image>
+          </Button>
         </div>
       </div>
     </div>
