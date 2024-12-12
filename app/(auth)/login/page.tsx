@@ -15,7 +15,7 @@ export default function Page() {
                         </div>
                         <div className="self-stretch text-primary text-[32px] font-normal font-clarys leading-8">your OpenGov AI assistant</div>
                     </div>
-                    <div className="w-[640px] text-primary text-base font-normal font-clarys leading-normal">Clarys.ai is here to simplify decision-making in OpenGov. Trained on OpenGov data, Clarys helps you explore on-chain and off-chain data, proposals, and discussions effortlessly.<br/><br/>Take control of OpenGov with Clarys—smart, efficient, and built for better decisions.</div>
+                    <div className="w-[640px] text-primary text-base font-normal font-clarys leading-normal">Clarys.AI is here to simplify decision-making in OpenGov. Trained on OpenGov data, Clarys helps you explore on-chain and off-chain data, proposals, and discussions effortlessly.<br/><br/>Take control of OpenGov with Clarys—smart, efficient, and built for better decisions.</div>
                 </div>
                 <CardPanel>
                     <Image src="/images/logo_horizontal_plain.png" alt="logomark" width={352}
