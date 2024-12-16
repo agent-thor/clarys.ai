@@ -1,5 +1,4 @@
 import Form from "next/form";
-
 import { Input } from "./ui/input";
 import { useActionState, useEffect, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
@@ -12,12 +11,18 @@ export function AuthForm() {
   const [email, setEmail] = useState("");
   const [isSuccessful, setIsSuccessful] = useState(false);
   const [errors, setErrors] = useState({ email: "" });
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false); // Track user interaction
   const [state, formAction] = useActionState<LoginActionState, FormData>(
     login,
     {
       status: "idle",
     }
   );
+
+  useEffect(() => {
+    validateForm(email);
+  }, []);
 
   useEffect(() => {
     if (state.status === "failed") {
@@ -42,22 +47,30 @@ export function AuthForm() {
     }
 
     setErrors(validationErrors);
+    setIsFormValid(validationErrors.email === "");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
+    validateForm(value);
   };
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyUp = () => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
+    }
     validateForm(email);
   };
 
   const handleSubmit = (formData: FormData) => {
-    if (!errors.email) {
+    if (isFormValid) {
       formAction(formData);
     }
   };
+
+  const isSubmitDisabled =
+    !isFormValid || state.status === "in_progress" || isSuccessful;
 
   return (
     <Form
@@ -72,7 +85,7 @@ export function AuthForm() {
           value={email}
           onChange={handleInputChange}
           onKeyUp={handleKeyUp}
-          className={errors.email ? "invalid" : ""}
+          className={errors.email && hasInteracted ? "invalid" : ""}
           placeholder="Your email address"
           autoComplete="email"
           required
@@ -80,9 +93,11 @@ export function AuthForm() {
         />
       </div>
       <p className="h-[14px] text-[10px] leading-[10px] mb-0.5 px-4 text-warning">
-        {errors.email}
+        {hasInteracted && errors.email}
       </p>
-      <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
+      <SubmitButton isSuccessful={isSuccessful} disabled={isSubmitDisabled}>
+        Sign in
+      </SubmitButton>
     </Form>
   );
 }
