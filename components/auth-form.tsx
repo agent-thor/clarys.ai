@@ -9,12 +9,9 @@ import { toast } from "sonner";
 
 export function AuthForm() {
   const router = useRouter();
-  const [formData, setFormData] = useState<FormData>(new FormData());
   const [email, setEmail] = useState("");
-  const [initState, setInitState] = useState(true);
   const [isSuccessful, setIsSuccessful] = useState(false);
   const [errors, setErrors] = useState({ email: "" });
-
   const [state, formAction] = useActionState<LoginActionState, FormData>(
     login,
     {
@@ -23,51 +20,45 @@ export function AuthForm() {
   );
 
   useEffect(() => {
-    let errors: { email: string } = { email: "" };
     if (state.status === "failed") {
-      errors.email = "Invalid credentials.";
-      setErrors(errors);
+      setErrors({ email: "Invalid credentials." });
       toast.error("Invalid credentials!");
     } else if (state.status === "invalid_data") {
-      validateForm();
+      setErrors({ email: "Email address is not valid." });
     } else if (state.status === "success") {
       setIsSuccessful(true);
       router.refresh();
     }
   }, [state.status, router]);
 
-  useEffect(() => {
-    console.log("effect validate form");
-    validateForm();
-  }, [email]);
+  const validateForm = (email: string): void => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let validationErrors = { email: "" };
 
-  useEffect(() => {
-    if (errors.email === "") {
-      formAction(formData);
+    if (!email) {
+      validationErrors.email = "Email is required.";
+    } else if (!emailRegex.test(email)) {
+      validationErrors.email = "Email address is not valid.";
     }
-  }, [errors]);
+
+    setErrors(validationErrors);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+  };
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    validateForm(email);
+  };
 
   const handleSubmit = (formData: FormData) => {
-    console.log("handle submit");
-    setEmail(formData.get("email") as string);
-    setFormData(formData);
-    setInitState(false);
+    if (!errors.email) {
+      formAction(formData);
+    }
   };
 
-  const validateForm = () => {
-    let errors = { email: "" };
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email === "" && !initState) {
-      errors.email = "Email is required.";
-    }
-
-    if (email !== "" && !emailRegex.test(email)) {
-      errors.email = "Email address is not valid.";
-    }
-
-    setErrors(errors);
-  };
   return (
     <Form
       action={handleSubmit}
@@ -77,31 +68,19 @@ export function AuthForm() {
       <div className="flex flex-col gap-2">
         <Input
           id="email"
-          key="email"
           name="email"
+          value={email}
+          onChange={handleInputChange}
+          onKeyUp={handleKeyUp}
           className={errors.email ? "invalid" : ""}
-          // type="email"
           placeholder="Your email address"
           autoComplete="email"
           required
           autoFocus
-          defaultValue={email}
         />
-
-        {/*   <Input
-                    id="password"
-                    name="password"
-                    className="bg-muted text-md md:text-sm"
-                    type="password"
-                    required
-                  />
-                </div>*/}
       </div>
-      <p
-        className={`h-[14px] text-[10px] leading-[10px] mb-0.5 px-4 text-warning relative top-10}`}
-      >
-        {" "}
-        {errors.email ? errors.email : ""}
+      <p className="h-[14px] text-[10px] leading-[10px] mb-0.5 px-4 text-warning">
+        {errors.email}
       </p>
       <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
     </Form>
