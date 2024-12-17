@@ -48,7 +48,7 @@ export function ChatHeader({ userName }: { userName: string }) {
   return (
     <div className="w-full flex justify-between items-center">
       <Link className="flex items-center justify-center" href="/">
-        <div className="relative group w-[206px] h-[40.90px] overflow-hidden">
+        <div className="relative group w-[206px] h-[41.14px] overflow-hidden">
           <div
               className="elem1 w-full h-full flex items-center justify-start text-white font-bold z-100"
           >
