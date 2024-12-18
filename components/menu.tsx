@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { signOut } from "next-auth/react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { saveTourCompleted, saveTourNeeded } from "@/app/(chat)/actions";
-import { router } from "next/client";
+import {useRouter} from "next/navigation";
 
 const Menu = ({ userName }: { userName: string }) => {
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
 
@@ -53,7 +54,8 @@ const Menu = ({ userName }: { userName: string }) => {
     saveTourNeeded(true);
     saveTourCompleted(false);
     setTimeout(() => {
-      router.push("/");
+      router.push('/');
+      router.refresh();
     }, 500);
   };
 
