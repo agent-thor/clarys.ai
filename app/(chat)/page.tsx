@@ -14,7 +14,9 @@ export default async function Page() {
     return notFound();
   }
   const tourCompleted = cookieStore.get("tourCompleted")?.value === "true";
-  const tourNeeded = cookieStore.get("tourNeeded") === undefined || cookieStore.get("tourNeeded")?.value === "true";
+  const tourNeeded =
+    cookieStore.get("tourNeeded") === undefined ||
+    cookieStore.get("tourNeeded")?.value === "true";
 
   const chatPage = (
     <Chat
@@ -36,5 +38,5 @@ export default async function Page() {
     ></Tour>
   );
 
-  return <>{(tourNeeded && !tourCompleted) ? tourPage : chatPage}</>;
+  return <>{tourNeeded && !tourCompleted ? tourPage : chatPage}</>;
 }

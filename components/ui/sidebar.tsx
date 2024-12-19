@@ -24,7 +24,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { clearCookies, saveTourCompleted } from "@/app/(chat)/actions";
+import { clearCookies } from "@/app/(chat)/actions";
+import { handleTourComplete } from "@/components/tour-panel";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -331,7 +332,7 @@ const SidebarInset = React.forwardRef<
 >(({ className, ...props }, ref) => {
   useEffect(() => {
     // Needed for page tour
-    saveTourCompleted(false);
+    handleTourComplete(false);
     const handlePageClose = () => {
       clearCookies();
     };

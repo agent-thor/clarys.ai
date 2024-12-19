@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { saveTourCompleted, saveTourNeeded } from "@/app/(chat)/actions";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -163,10 +162,10 @@ export default function TourPanel({
   const [dontShowOnStartup, setDontShowOnStartup] = useState(!tourNeeded);
 
   const buttonTexts = [
-    {previous: '', next: 'See What' },
-    {previous: 'Why Clarys', next: 'Learn How' },
-    {previous: 'See What', next: 'Start using Clarys.AI' },
-  ]
+    { previous: "", next: "See What" },
+    { previous: "Why Clarys", next: "Learn How" },
+    { previous: "See What", next: "Start using Clarys.AI" },
+  ];
 
   useEffect(() => {
     if (tourNeeded !== null) {
@@ -178,11 +177,12 @@ export default function TourPanel({
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      saveTourCompleted(true);
-      saveTourNeeded(!dontShowOnStartup);
+      handleTourComplete(true);
+      handleTourNeeded(!dontShowOnStartup);
+
       setTimeout(() => {
         router.push("/");
-      }, 500);
+      }, 100);
     }
   };
 
@@ -253,7 +253,9 @@ export default function TourPanel({
             onClick={nextStep}
             className="w-[240px] h-[48px] rounded-2xl px-8 py-4 border"
           >
-            <span className="text-clarys text-primary text-[14px]">{buttonTexts[currentStep].next}</span>
+            <span className="text-clarys text-primary text-[14px]">
+              {buttonTexts[currentStep].next}
+            </span>
             <Image
               src="/images/next.svg"
               alt="next"
@@ -266,3 +268,14 @@ export default function TourPanel({
     </div>
   );
 }
+
+export const handleTourComplete = (tourCompleted: boolean) => {
+  document.cookie = `tourCompleted=${String(
+    tourCompleted
+  )}; path=/; max-age=31536000`; // Expires in 1 year
+};
+export const handleTourNeeded = (tourNeeded: boolean) => {
+  document.cookie = `tourNeeded=${String(
+    tourNeeded
+  )}; path=/; max-age=31536000`; // Expires in 1 year
+};

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { signOut } from "next-auth/react";
 import { useSidebar } from "@/components/ui/sidebar";
-import { saveTourCompleted, saveTourNeeded } from "@/app/(chat)/actions";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
+import { handleTourComplete, handleTourNeeded } from "@/components/tour-panel";
 
 const Menu = ({ userName }: { userName: string }) => {
   const router = useRouter();
@@ -51,10 +51,10 @@ const Menu = ({ userName }: { userName: string }) => {
   const { toggleSidebar } = useSidebar();
 
   const handleWhyClarys = () => {
-    saveTourNeeded(true);
-    saveTourCompleted(false);
+    handleTourNeeded(true);
+    handleTourComplete(false);
     setTimeout(() => {
-      router.push('/');
+      router.push("/");
       router.refresh();
     }, 500);
   };
