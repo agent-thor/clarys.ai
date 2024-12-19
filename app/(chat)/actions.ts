@@ -3,15 +3,11 @@
 import { generateText } from 'ai';
 import { cookies } from 'next/headers';
 
-import { customModel } from '@/lib/ai';
+import { customModel } from '@/lib/ai'; 
 
 export async function saveModelId(model: string) { 
   const cookieStore = await cookies();
   cookieStore.set('model-id', model);
-}
-export async function clearCookies() {
-  const cookieStore = await cookies();
-  cookieStore.set('tourCompleted', 'false');
 }
 
 export async function generateTitleFromUserMessage({

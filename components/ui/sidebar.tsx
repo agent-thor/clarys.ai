@@ -24,7 +24,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { clearCookies } from "@/app/(chat)/actions";
 import { handleTourComplete } from "@/components/tour-panel";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
@@ -334,7 +333,7 @@ const SidebarInset = React.forwardRef<
     // Needed for page tour
     handleTourComplete(false);
     const handlePageClose = () => {
-      clearCookies();
+      handleTourComplete(false);
     };
 
     // Listen for page unload or refresh
