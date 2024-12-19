@@ -56,7 +56,7 @@ const Menu = ({ userName }: { userName: string }) => {
     setTimeout(() => {
       router.push("/");
       router.refresh();
-    }, 500);
+    }, 100);
   };
 
   return (
