@@ -47,7 +47,9 @@ const blocksTools: AllowedTools[] = [
 ];
 const weatherTools: AllowedTools[] = ["getWeather"];
 const dateTools: AllowedTools[] = ["getCurrentDate"];
-const proposalsCountAndProposalsNamesList: AllowedTools[] = ["getProposalsCountAndProposalsNamesList"];
+const proposalsCountAndProposalsNamesList: AllowedTools[] = [
+  "getProposalsCountAndProposalsNamesList",
+];
 const allTools: AllowedTools[] = [
   ...blocksTools,
   ...weatherTools,
@@ -119,29 +121,10 @@ export async function POST(request: Request) {
     }
   };
 
-  const getCurrentDate = async () => {
-    try {
-      const response = await axios.get(
-        "http://ec2-3-90-166-244.compute-1.amazonaws.com:3000/api/utility/getCurrentDate"
-      );
+  const getCurrentDate = () => {
+    const currentDate = new Date();
 
-      let currentDate = "Today";
-
-      if (response && response?.data) {
-        if (
-          response.data?.errorCode &&
-          response.data?.errorCode.message === "Success" &&
-          response.data?.response
-        ) {
-          currentDate = response.data.response;
-        }
-      }
-
-      return currentDate;
-    } catch (error) {
-      console.error("Error fetching current date data:", error);
-      throw error; // Re-throw the error for handling by the caller
-    }
+    return { currentDate: currentDate.toUTCString() };
   };
 
   const getProposalsCountAndProposalsNamesList = async () => {
