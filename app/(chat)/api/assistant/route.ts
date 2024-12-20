@@ -130,7 +130,7 @@ export async function POST(request: Request) {
   const getProposalsCountAndProposalsNamesList = async () => {
     try {
       const response = await axios.get(
-        "http://ec2-3-90-166-244.compute-1.amazonaws.com:3000/api/s3/s3GetListOfProposals"
+        "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/s3/s3GetListOfProposals"
       );
 
       let proposalsCountAndProposalsNamesList = {
