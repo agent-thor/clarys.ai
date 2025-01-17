@@ -140,7 +140,7 @@ export async function POST(request: Request) {
   const getPostsData = async (params: any) => {
     try {
       const response = await axios.get(
-        "http://localhost:3000/api/dynamoDB/getPostsData", {
+        "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/getPostsData", {
           params: {
             ...params,
         }
