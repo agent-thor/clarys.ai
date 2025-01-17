@@ -103,24 +103,6 @@ export async function POST(request: Request) {
     }
   );
 
-  const getWeatherData = async (latitude: number, longitude: number) => {
-    try {
-      const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch weather data: ${response.statusText}`);
-      }
-
-      const weatherData = await response.json();
-      return weatherData; // Return the parsed JSON response
-    } catch (error) {
-      console.error("Error fetching weather data:", error);
-      throw error; // Re-throw the error for handling by the caller
-    }
-  };
-
   const getCurrentDate = () => {
     const currentDate = new Date();
 
@@ -151,6 +133,35 @@ export async function POST(request: Request) {
       return proposalsCountAndProposalsNamesList;
     } catch (error) {
       console.error("Error fetching current date data:", error);
+      throw error; // Re-throw the error for handling by the caller
+    }
+  };
+
+  const getPostsData = async (params: any) => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/dynamoDB/getPostsData", {
+          params: {
+            ...params,
+        }
+        }
+      );
+
+      let getPostsData = [];
+
+      if (response && response?.data) {
+        if (
+          response.data?.errorCode &&
+          response.data?.errorCode.message === "Success" &&
+          response.data?.response
+        ) {
+          getPostsData = response.data.response;
+        }
+      }
+
+      return getPostsData;
+    } catch (error) {
+      console.error("Error fetching Posts Data:", error);
       throw error; // Re-throw the error for handling by the caller
     }
   };
@@ -193,14 +204,6 @@ export async function POST(request: Request) {
           .tool_calls) {
           const { id: toolCallId, function: fn } = tool_call;
           const { name, arguments: args } = fn;
-          if (name === "getWeather") {
-            const { latitude, longitude } = JSON.parse(args);
-            const weather = await getWeatherData(latitude, longitude);
-            tool_outputs.push({
-              tool_call_id: toolCallId,
-              output: JSON.stringify(weather),
-            });
-          }
 
           if (name === "getCurrentDate") {
             const date = await getCurrentDate();
@@ -215,6 +218,15 @@ export async function POST(request: Request) {
             tool_outputs.push({
               tool_call_id: toolCallId,
               output: JSON.stringify(date),
+            });
+          }
+
+          if (name === "getPostsData") {
+            const params = JSON.parse(args);
+            const response = await getPostsData(params);
+            tool_outputs.push({
+              tool_call_id: toolCallId,
+              output: JSON.stringify(response),
             });
           }
         }
