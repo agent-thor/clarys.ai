@@ -3,6 +3,13 @@ import OpenAI from "openai";
 import https from "https";
 import { readFileSync } from "fs";
 import axios from "axios";
+import { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/runs.mjs";
+import { getChatById, saveChat, saveMessages } from "@/lib/db/queries";
+import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
+import { auth } from "@/app/(auth)/auth";
+import { message } from "@/lib/db/schema";
+import { generateUUID } from "@/lib/utils";
+import { threadId } from "worker_threads";
 
 let agent = new https.Agent({
   rejectUnauthorized: true,
@@ -24,37 +31,12 @@ const openai = new OpenAI({
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
-import { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/runs.mjs";
-import { getChatById, saveChat, saveMessages } from "@/lib/db/queries";
-import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
-import { auth } from "@/app/(auth)/auth";
-import { message } from "@/lib/db/schema";
-import { generateUUID } from "@/lib/utils";
-import { threadId } from "worker_threads";
+const blocksTools = ["createDocument", "updateDocument", "requestSuggestions"];
 
-type AllowedTools =
-  | "createDocument"
-  | "updateDocument"
-  | "requestSuggestions"
-  | "getWeather"
-  | "getCurrentDate"
-  | "getProposalsCountAndProposalsNamesList";
+const dateTools = ["getCurrentDate"];
+const postTools = ["getProposalsCountAndProposalsNamesList", "getPostsData"];
 
-const blocksTools: AllowedTools[] = [
-  "createDocument",
-  "updateDocument",
-  "requestSuggestions",
-];
-const weatherTools: AllowedTools[] = ["getWeather"];
-const dateTools: AllowedTools[] = ["getCurrentDate"];
-const proposalsCountAndProposalsNamesList: AllowedTools[] = [
-  "getProposalsCountAndProposalsNamesList",
-];
-const allTools: AllowedTools[] = [
-  ...blocksTools,
-  ...weatherTools,
-  ...dateTools,
-];
+const allTools = [...blocksTools, ...dateTools, ...postTools];
 
 export async function POST(request: Request) {
   // Parse the request body
@@ -133,17 +115,18 @@ export async function POST(request: Request) {
       return proposalsCountAndProposalsNamesList;
     } catch (error) {
       console.error("Error fetching current date data:", error);
-      throw error; // Re-throw the error for handling by the caller
+      throw error;
     }
   };
 
   const getPostsData = async (params: any) => {
     try {
       const response = await axios.get(
-        "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/getPostsData", {
+        "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/getPostsData",
+        {
           params: {
             ...params,
-        }
+          },
         }
       );
 
@@ -162,7 +145,7 @@ export async function POST(request: Request) {
       return getPostsData;
     } catch (error) {
       console.error("Error fetching Posts Data:", error);
-      throw error; // Re-throw the error for handling by the caller
+      throw error;
     }
   };
 
@@ -177,19 +160,37 @@ export async function POST(request: Request) {
             throw new Error("ASSISTANT_ID is not set");
           })(),
 
-        // tools: [
-        //   {
-        //       "type": "file_search",
-        //       "file_search": {
-        //           "ranking_options": {
-        //               "score_threshold": 0.75
-        //           }
-        //       }
-        //   }
-        // ]
+          // tools: [
+          //   {
+          //     type: "file_search",
+          //     file_search: {
+          //       ranking_options: {
+          //         score_threshold: 0.75,
+          //       },
+          //     },
+          //   },
+          //   {
+          //     type: "function",
+          //     function: {
+          //       name: "getCurrentDate",
+          //     },
+          //   },
+          //   {
+          //     type: "function",
+          //     function: {
+          //       name: "getProposalsCountAndProposalsNamesList",
+          //     },
+          //   },
+          //   {
+          //     type: "function",
+          //     function: {
+          //       name: "getPostsData",
+          //     },
+          //   },
+          // ]          
       });
 
-      // forward run status would stream message deltas
+      // Forward run status would stream message deltas
       let runResult = await forwardStream(runStream);
 
       // status can be: queued, in_progress, requires_action, cancelling, cancelled, failed, completed, or expired
