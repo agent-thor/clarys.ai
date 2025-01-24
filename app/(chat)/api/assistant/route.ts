@@ -50,20 +50,14 @@ const getProposalsCountAndProposalsNamesList = async () => {
       proposals: [],
     };
 
-    if (response && response?.data) {
-      if (
-        response.data?.errorCode &&
-        response.data?.errorCode.message === "Success" &&
-        response.data?.response
-      ) {
-        proposalsCountAndProposalsNamesList = response.data.response;
-      }
+    if (response?.data?.errorCode?.message === "Success") {
+      proposalsCountAndProposalsNamesList = response.data.response;
     }
 
     return proposalsCountAndProposalsNamesList;
   } catch (error) {
     console.error("Error fetching proposals data:", error);
-    throw error;
+    throw new Error("Failed to fetch proposals data: " + error);
   }
 };
 
@@ -80,20 +74,14 @@ const getPostsData = async (params: any) => {
 
     let postsData = [];
 
-    if (response && response?.data) {
-      if (
-        response.data?.errorCode &&
-        response.data?.errorCode.message === "Success" &&
-        response.data?.response
-      ) {
-        postsData = response.data.response;
-      }
+    if (response?.data?.errorCode?.message === "Success") {
+      postsData = response.data.response;
     }
 
     return postsData;
   } catch (error) {
     console.error("Error fetching posts data:", error);
-    throw error;
+    throw new Error("Failed to fetch posts data: " + error);
   }
 };
 
@@ -109,7 +97,9 @@ const executeTool = async (toolName: string, toolCallId: any, args: any) => {
       case "getProposalsCountAndProposalsNamesList":
         return {
           tool_call_id: toolCallId,
-          output: JSON.stringify(await getProposalsCountAndProposalsNamesList()),
+          output: JSON.stringify(
+            await getProposalsCountAndProposalsNamesList()
+          ),
         };
 
       case "getPostsData":
@@ -129,11 +119,77 @@ const executeTool = async (toolName: string, toolCallId: any, args: any) => {
   }
 };
 
+const isThreadActive = async (threadId: string) => {
+  try {
+    const thread = await openai.beta.threads.retrieve(threadId);
+    return thread._request_id ? true : false;
+  } catch (error) {
+    console.error("Error checking thread status:", error);
+    return false;
+  }
+};
+
+const getRunsForThread = async (threadId: any) => {
+  try {
+    const runs = await openai.beta.threads.runs.list(threadId);
+
+    if (runs?.data?.length > 0) {
+      console.log("Runs: ", runs);
+      return runs.data;
+    } else {
+      console.warn("No runs found for this thread.");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error retrieving runs for thread:", error);
+    throw new Error("Failed to retrieve runs for thread: " + error);
+  }
+};
+
+const waitForRunToFinish = async (threadId: any) => {
+  try {
+    let runFinished = false;
+    let runId = null;
+
+    while (!runFinished) {
+      console.log("Checking for runs...");
+
+      const runs = await getRunsForThread(threadId);
+
+      if (runs && runs?.length > 0) {
+        const latestRun = runs[0];
+        runId = latestRun.id;
+
+        if (latestRun.status === "completed") {
+          console.log("Run has completed!");
+          runFinished = true;
+        } else {
+          console.log("Run is still in progress...");
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+        }
+      } else {
+        console.warn("No runs found for this thread.");
+        runFinished = true;
+        break;
+      }
+    }
+
+    if (runId) {
+      console.log(`Run ${runId} has finished successfully.`);
+    }
+
+    return runFinished;
+  } catch (error) {
+    console.error("Error in waitForRunToFinish:", error);
+    throw new Error("Failed to wait for run to finish: " + error);
+  }
+};
+
 export async function POST(request: Request) {
   const { id, message } = await request.json();
   const session = await auth();
 
-  if (!session || !session.user || !session.user.id) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 
@@ -149,6 +205,17 @@ export async function POST(request: Request) {
       threadId,
     });
     chat = insertedChats[0];
+  }
+
+  const threadIsActive = await isThreadActive(chat.threadId);
+  if (!threadIsActive) {
+    throw new Error("Thread is not active, unable to continue.");
+  }
+
+  const isRunCompleted = await waitForRunToFinish(chat.threadId);
+
+  if (!isRunCompleted) {
+    throw new Error("The run was not completed successfully.");
   }
 
   await saveMessages({
@@ -181,34 +248,34 @@ export async function POST(request: Request) {
             (() => {
               throw new Error("ASSISTANT_ID is not set");
             })(),
-            // tools: [
-            //   {
-            //     type: "file_search",
-            //     file_search: {
-            //       ranking_options: {
-            //         score_threshold: 0.75,
-            //       },
-            //     },
-            //   },
-            //   {
-            //     type: "function",
-            //     function: {
-            //       name: "getCurrentDate",
-            //     },
-            //   },
-            //   {
-            //     type: "function",
-            //     function: {
-            //       name: "getProposalsCountAndProposalsNamesList",
-            //     },
-            //   },
-            //   {
-            //     type: "function",
-            //     function: {
-            //       name: "getPostsData",
-            //     },
-            //   },
-            // ] 
+          // tools: [
+          //   {
+          //     type: "file_search",
+          //     file_search: {
+          //       ranking_options: {
+          //         score_threshold: 0.75,
+          //       },
+          //     },
+          //   },
+          //   {
+          //     type: "function",
+          //     function: {
+          //       name: "getCurrentDate",
+          //     },
+          //   },
+          //   {
+          //     type: "function",
+          //     function: {
+          //       name: "getProposalsCountAndProposalsNamesList",
+          //     },
+          //   },
+          //   {
+          //     type: "function",
+          //     function: {
+          //       name: "getPostsData",
+          //     },
+          //   },
+          // ]
         })
       );
 
