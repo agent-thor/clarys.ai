@@ -7,9 +7,7 @@ import { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/r
 import { getChatById, saveChat, saveMessages } from "@/lib/db/queries";
 import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
 import { auth } from "@/app/(auth)/auth";
-import { message } from "@/lib/db/schema";
 import { generateUUID } from "@/lib/utils";
-import { threadId } from "worker_threads";
 
 let agent = new https.Agent({
   rejectUnauthorized: true,
@@ -32,16 +30,107 @@ const openai = new OpenAI({
 export const maxDuration = 30;
 
 const blocksTools = ["createDocument", "updateDocument", "requestSuggestions"];
-
 const dateTools = ["getCurrentDate"];
 const postTools = ["getProposalsCountAndProposalsNamesList", "getPostsData"];
-
 const allTools = [...blocksTools, ...dateTools, ...postTools];
 
-export async function POST(request: Request) {
-  // Parse the request body
-  const { id, message }: { id: string; message: string } = await request.json();
+const getCurrentDate = () => {
+  const currentDate = new Date();
+  return { currentDate: currentDate.toUTCString() };
+};
 
+const getProposalsCountAndProposalsNamesList = async () => {
+  try {
+    const response = await axios.get(
+      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/s3/s3GetListOfProposals"
+    );
+
+    let proposalsCountAndProposalsNamesList = {
+      numberOfProposals: 0,
+      proposals: [],
+    };
+
+    if (response && response?.data) {
+      if (
+        response.data?.errorCode &&
+        response.data?.errorCode.message === "Success" &&
+        response.data?.response
+      ) {
+        proposalsCountAndProposalsNamesList = response.data.response;
+      }
+    }
+
+    return proposalsCountAndProposalsNamesList;
+  } catch (error) {
+    console.error("Error fetching proposals data:", error);
+    throw error;
+  }
+};
+
+const getPostsData = async (params: any) => {
+  try {
+    const response = await axios.get(
+      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/getPostsData",
+      {
+        params: {
+          ...params,
+        },
+      }
+    );
+
+    let postsData = [];
+
+    if (response && response?.data) {
+      if (
+        response.data?.errorCode &&
+        response.data?.errorCode.message === "Success" &&
+        response.data?.response
+      ) {
+        postsData = response.data.response;
+      }
+    }
+
+    return postsData;
+  } catch (error) {
+    console.error("Error fetching posts data:", error);
+    throw error;
+  }
+};
+
+const executeTool = async (toolName: string, toolCallId: any, args: any) => {
+  try {
+    switch (toolName) {
+      case "getCurrentDate":
+        return {
+          tool_call_id: toolCallId,
+          output: JSON.stringify(await getCurrentDate()),
+        };
+
+      case "getProposalsCountAndProposalsNamesList":
+        return {
+          tool_call_id: toolCallId,
+          output: JSON.stringify(await getProposalsCountAndProposalsNamesList()),
+        };
+
+      case "getPostsData":
+        const params = JSON.parse(args || "{}");
+        return {
+          tool_call_id: toolCallId,
+          output: JSON.stringify(await getPostsData(params)),
+        };
+
+      default:
+        console.warn(`Unknown tool requested: ${toolName}`);
+        return null;
+    }
+  } catch (error) {
+    console.error(`Error executing tool ${toolName}:`, error);
+    return null;
+  }
+};
+
+export async function POST(request: Request) {
+  const { id, message } = await request.json();
   const session = await auth();
 
   if (!session || !session.user || !session.user.id) {
@@ -51,9 +140,7 @@ export async function POST(request: Request) {
   let chat = await getChatById({ id });
 
   if (!chat) {
-    // Create a thread if needed
     const threadId = (await openai.beta.threads.create({})).id;
-
     const title = await generateTitleFromUserMessage({ message });
     const insertedChats = await saveChat({
       id,
@@ -76,7 +163,6 @@ export async function POST(request: Request) {
     ],
   });
 
-  // Add a message to the thread
   const createdMessage = await openai.beta.threads.messages.create(
     chat.threadId,
     {
@@ -85,151 +171,59 @@ export async function POST(request: Request) {
     }
   );
 
-  const getCurrentDate = () => {
-    const currentDate = new Date();
-
-    return { currentDate: currentDate.toUTCString() };
-  };
-
-  const getProposalsCountAndProposalsNamesList = async () => {
-    try {
-      const response = await axios.get(
-        "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/s3/s3GetListOfProposals"
-      );
-
-      let proposalsCountAndProposalsNamesList = {
-        numberOfProposals: 0,
-        proposals: [],
-      };
-
-      if (response && response?.data) {
-        if (
-          response.data?.errorCode &&
-          response.data?.errorCode.message === "Success" &&
-          response.data?.response
-        ) {
-          proposalsCountAndProposalsNamesList = response.data.response;
-        }
-      }
-
-      return proposalsCountAndProposalsNamesList;
-    } catch (error) {
-      console.error("Error fetching current date data:", error);
-      throw error;
-    }
-  };
-
-  const getPostsData = async (params: any) => {
-    try {
-      const response = await axios.get(
-        "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/getPostsData",
-        {
-          params: {
-            ...params,
-          },
-        }
-      );
-
-      let getPostsData = [];
-
-      if (response && response?.data) {
-        if (
-          response.data?.errorCode &&
-          response.data?.errorCode.message === "Success" &&
-          response.data?.response
-        ) {
-          getPostsData = response.data.response;
-        }
-      }
-
-      return getPostsData;
-    } catch (error) {
-      console.error("Error fetching Posts Data:", error);
-      throw error;
-    }
-  };
-
   return AssistantResponse(
     { threadId: chat.threadId, messageId: createdMessage.id },
     async ({ forwardStream, sendDataMessage }) => {
-      // Run the assistant on the thread
-      const runStream = openai.beta.threads.runs.stream(chat.threadId, {
-        assistant_id:
-          process.env.ASSISTANT_ID ??
-          (() => {
-            throw new Error("ASSISTANT_ID is not set");
-          })(),
+      let runResult = await forwardStream(
+        openai.beta.threads.runs.stream(chat.threadId, {
+          assistant_id:
+            process.env.ASSISTANT_ID ??
+            (() => {
+              throw new Error("ASSISTANT_ID is not set");
+            })(),
+            // tools: [
+            //   {
+            //     type: "file_search",
+            //     file_search: {
+            //       ranking_options: {
+            //         score_threshold: 0.75,
+            //       },
+            //     },
+            //   },
+            //   {
+            //     type: "function",
+            //     function: {
+            //       name: "getCurrentDate",
+            //     },
+            //   },
+            //   {
+            //     type: "function",
+            //     function: {
+            //       name: "getProposalsCountAndProposalsNamesList",
+            //     },
+            //   },
+            //   {
+            //     type: "function",
+            //     function: {
+            //       name: "getPostsData",
+            //     },
+            //   },
+            // ] 
+        })
+      );
 
-          // tools: [
-          //   {
-          //     type: "file_search",
-          //     file_search: {
-          //       ranking_options: {
-          //         score_threshold: 0.75,
-          //       },
-          //     },
-          //   },
-          //   {
-          //     type: "function",
-          //     function: {
-          //       name: "getCurrentDate",
-          //     },
-          //   },
-          //   {
-          //     type: "function",
-          //     function: {
-          //       name: "getProposalsCountAndProposalsNamesList",
-          //     },
-          //   },
-          //   {
-          //     type: "function",
-          //     function: {
-          //       name: "getPostsData",
-          //     },
-          //   },
-          // ]          
-      });
-
-      // Forward run status would stream message deltas
-      let runResult = await forwardStream(runStream);
-
-      // status can be: queued, in_progress, requires_action, cancelling, cancelled, failed, completed, or expired
       while (
         runResult?.status === "requires_action" &&
         runResult.required_action?.type === "submit_tool_outputs"
       ) {
-        console.log(runResult.required_action);
-        const tool_outputs: Array<RunSubmitToolOutputsParams.ToolOutput> = [];
+        const tool_outputs = [];
+        const toolCalls = runResult.required_action.submit_tool_outputs;
 
-        for (const tool_call of runResult.required_action.submit_tool_outputs
-          .tool_calls) {
+        for (const tool_call of toolCalls) {
           const { id: toolCallId, function: fn } = tool_call;
           const { name, arguments: args } = fn;
-
-          if (name === "getCurrentDate") {
-            const date = await getCurrentDate();
-            tool_outputs.push({
-              tool_call_id: toolCallId,
-              output: JSON.stringify(date),
-            });
-          }
-
-          if (name === "getProposalsCountAndProposalsNamesList") {
-            const date = await getProposalsCountAndProposalsNamesList();
-            tool_outputs.push({
-              tool_call_id: toolCallId,
-              output: JSON.stringify(date),
-            });
-          }
-
-          if (name === "getPostsData") {
-            const params = JSON.parse(args);
-            const response = await getPostsData(params);
-            tool_outputs.push({
-              tool_call_id: toolCallId,
-              output: JSON.stringify(response),
-            });
-          }
+          const result = await executeTool(name, toolCallId, args);
+          if (result) tool_outputs.push(result);
         }
 
         runResult = await forwardStream(
