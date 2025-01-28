@@ -248,34 +248,35 @@ export async function POST(request: Request) {
             (() => {
               throw new Error("ASSISTANT_ID is not set");
             })(),
-          // tools: [
-          //   {
-          //     type: "file_search",
-          //     file_search: {
-          //       ranking_options: {
-          //         score_threshold: 0.75,
-          //       },
-          //     },
-          //   },
-          //   {
-          //     type: "function",
-          //     function: {
-          //       name: "getCurrentDate",
-          //     },
-          //   },
-          //   {
-          //     type: "function",
-          //     function: {
-          //       name: "getProposalsCountAndProposalsNamesList",
-          //     },
-          //   },
-          //   {
-          //     type: "function",
-          //     function: {
-          //       name: "getPostsData",
-          //     },
-          //   },
-          // ]
+          tool_choice: "required",
+          tools: [
+            {
+              type: "file_search",
+              file_search: {
+                ranking_options: {
+                  score_threshold: 0.75,
+                },
+              },
+            },
+            {
+              type: "function",
+              function: {
+                name: "getCurrentDate",
+              },
+            },
+            {
+              type: "function",
+              function: {
+                name: "getProposalsCountAndProposalsNamesList",
+              },
+            },
+            {
+              type: "function",
+              function: {
+                name: "getPostsData",
+              },
+            },
+          ],
         })
       );
 
@@ -283,8 +284,9 @@ export async function POST(request: Request) {
         runResult?.status === "requires_action" &&
         runResult.required_action?.type === "submit_tool_outputs"
       ) {
-        const tool_outputs : Array<RunSubmitToolOutputsParams.ToolOutput> = [];
-        const toolCalls = runResult.required_action.submit_tool_outputs.tool_calls;
+        const tool_outputs: Array<RunSubmitToolOutputsParams.ToolOutput> = [];
+        const toolCalls =
+          runResult.required_action.submit_tool_outputs.tool_calls;
 
         for (const tool_call of toolCalls) {
           const { id: toolCallId, function: fn } = tool_call;
@@ -325,6 +327,8 @@ export async function POST(request: Request) {
             ],
           });
         }
+      } else {
+        console.log("runResult?.status", runResult?.status);
       }
     }
   );
