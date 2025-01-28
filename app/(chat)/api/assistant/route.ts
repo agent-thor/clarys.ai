@@ -283,8 +283,8 @@ export async function POST(request: Request) {
         runResult?.status === "requires_action" &&
         runResult.required_action?.type === "submit_tool_outputs"
       ) {
-        const tool_outputs = [];
-        const toolCalls = runResult.required_action.submit_tool_outputs;
+        const tool_outputs : Array<RunSubmitToolOutputsParams.ToolOutput> = [];
+        const toolCalls = runResult.required_action.submit_tool_outputs.tool_calls;
 
         for (const tool_call of toolCalls) {
           const { id: toolCallId, function: fn } = tool_call;
