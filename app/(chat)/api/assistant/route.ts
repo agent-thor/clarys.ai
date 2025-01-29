@@ -1,26 +1,11 @@
 import { AssistantResponse } from "ai";
-import OpenAI from "openai";
-import https from "https";
-import { readFileSync } from "fs";
+import OpenAI, { APIError } from "openai";
 import axios from "axios";
 import { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/runs.mjs";
 import { getChatById, saveChat, saveMessages } from "@/lib/db/queries";
 import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
 import { auth } from "@/app/(auth)/auth";
 import { generateUUID } from "@/lib/utils";
-
-let agent = new https.Agent({
-  rejectUnauthorized: true,
-});
-
-if (process.env.NODE_ENV === "development") {
-  const certs = [readFileSync("./Zscaler_Root_CA.pem")];
-
-  agent = new https.Agent({
-    rejectUnauthorized: true,
-    ca: certs,
-  });
-}
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "",
@@ -85,34 +70,34 @@ const getPostsData = async (params: any) => {
   }
 };
 
-const executeTool = async (toolName: string, toolCallId: any, args: any) => {
+const executeTool = async (toolName: string, toolCallId: any, args: any) : Promise<RunSubmitToolOutputsParams.ToolOutput | null> => {
   try {
+    let output: object | null;
+
     switch (toolName) {
       case "getCurrentDate":
-        return {
-          tool_call_id: toolCallId,
-          output: JSON.stringify(await getCurrentDate()),
-        };
+        output = await getCurrentDate();
+        break;
 
       case "getProposalsCountAndProposalsNamesList":
-        return {
-          tool_call_id: toolCallId,
-          output: JSON.stringify(
-            await getProposalsCountAndProposalsNamesList()
-          ),
-        };
+        output = await getProposalsCountAndProposalsNamesList();
+        break;
 
       case "getPostsData":
         const params = JSON.parse(args || "{}");
-        return {
-          tool_call_id: toolCallId,
-          output: JSON.stringify(await getPostsData(params)),
-        };
+        output = await getPostsData(params);
+        break;
 
       default:
         console.warn(`Unknown tool requested: ${toolName}`);
         return null;
     }
+
+    return {
+      tool_call_id: toolCallId,
+      output: JSON.stringify(output),
+    };
+
   } catch (error) {
     console.error(`Error executing tool ${toolName}:`, error);
     return null;
@@ -137,7 +122,7 @@ const getRunsForThread = async (threadId: any) => {
       console.log("Runs: ", runs);
       return runs.data;
     } else {
-      console.warn("No runs found for this thread.");
+      console.log("No runs found for this thread.");
       return null;
     }
   } catch (error) {
@@ -157,18 +142,22 @@ const waitForRunToFinish = async (threadId: any) => {
       const runs = await getRunsForThread(threadId);
 
       if (runs && runs?.length > 0) {
-        const latestRun = runs[0];
-        runId = latestRun.id;
+        runFinished = true;
 
-        if (latestRun.status === "completed") {
-          console.log("Run has completed!");
-          runFinished = true;
-        } else {
-          console.log("Run is still in progress...");
-          await new Promise((resolve) => setTimeout(resolve, 5000));
+        for (const run of runs) {
+          if (
+            run.status === "queued" ||
+            run.status === "in_progress" ||
+            run.status === "requires_action"
+          ) {
+            console.log(`Run ${run.id} is still in progress...`);
+            runFinished = false;
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            break;
+          }
         }
       } else {
-        console.warn("No runs found for this thread.");
+        console.log("No runs found for this thread.");
         runFinished = true;
         break;
       }
@@ -279,6 +268,7 @@ export async function POST(request: Request) {
           ],
         })
       );
+      console.log(`runResult: status=${runResult.status} type=${runResult.required_action?.type}`);
 
       while (
         runResult?.status === "requires_action" &&
@@ -295,13 +285,38 @@ export async function POST(request: Request) {
           if (result) tool_outputs.push(result);
         }
 
-        runResult = await forwardStream(
-          openai.beta.threads.runs.submitToolOutputsStream(
-            chat.threadId,
-            runResult.id,
-            { tool_outputs }
-          )
-        );
+        try {
+          runResult = await forwardStream(
+            openai.beta.threads.runs.submitToolOutputsStream(
+              chat.threadId,
+              runResult.id,
+              { tool_outputs }
+            )
+          );
+        } catch (error) {
+          console.error("Error submitting tool outputs:", error);
+
+          // if there is an error submitting tool outputs, we need to submit an error message instead for all called tools 
+          // in order to get the run out of the requires_action state
+          if (error instanceof APIError) {
+            const error_outputs: Array<RunSubmitToolOutputsParams.ToolOutput> = [];
+            
+            for (const tool_call of toolCalls) {
+                error_outputs.push({
+                  tool_call_id: tool_call.id,
+                  output: "An error occurred while processing your request: " + error.message,
+                });
+
+            }
+            runResult = await forwardStream( 
+              openai.beta.threads.runs.submitToolOutputsStream(
+                chat.threadId,
+                runResult.id,
+                { tool_outputs: error_outputs }
+              )
+            );
+          }
+        }
       }
 
       if (runResult?.status === "completed") {
@@ -328,7 +343,7 @@ export async function POST(request: Request) {
           });
         }
       } else {
-        console.log("runResult?.status", runResult?.status);
+        console.log("runResult?.status ", runResult?.status);
       }
     }
   );
