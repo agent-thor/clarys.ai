@@ -91,10 +91,8 @@ const executeTool = async (
         const params = JSON.parse(args);
         const response = await retrieveData(params);
 
-        if (Array.isArray(response)) {
-          if (response.length > 100) {
+        if (Array.isArray(response) && response.length > 100) {
             output = response.slice(0, 10);
-          }
         } else {
           output = response;
         }
@@ -249,35 +247,7 @@ export async function POST(request: Request) {
             (() => {
               throw new Error("ASSISTANT_ID is not set");
             })(),
-          tool_choice: "required",
-          tools: [
-            {
-              type: "file_search",
-              file_search: {
-                ranking_options: {
-                  score_threshold: 0.75,
-                },
-              },
-            },
-            {
-              type: "function",
-              function: {
-                name: "getCurrentDateAndTime",
-              },
-            },
-            {
-              type: "function",
-              function: {
-                name: "getProposalsCountAndProposalsNames",
-              },
-            },
-            {
-              type: "function",
-              function: {
-                name: "retrieveData",
-              },
-            },
-          ],
+          
         })
       );
       console.log(
