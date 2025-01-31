@@ -70,7 +70,11 @@ const retrieveData = async (params: any) => {
   }
 };
 
-const executeTool = async (toolName: string, toolCallId: any, args: any) : Promise<RunSubmitToolOutputsParams.ToolOutput | null> => {
+const executeTool = async (
+  toolName: string,
+  toolCallId: any,
+  args: any
+): Promise<RunSubmitToolOutputsParams.ToolOutput | null> => {
   try {
     let output: object | null = null;
 
@@ -87,11 +91,11 @@ const executeTool = async (toolName: string, toolCallId: any, args: any) : Promi
         const params = JSON.parse(args || "{}");
         const response = await retrieveData(params);
 
-        if(Array.isArray(response)){
-          if(response.length > 100){
+        if (Array.isArray(response)) {
+          if (response.length > 100) {
             output = response.slice(0, 10);
           }
-        }else{
+        } else {
           output = response;
         }
 
@@ -106,7 +110,6 @@ const executeTool = async (toolName: string, toolCallId: any, args: any) : Promi
       tool_call_id: toolCallId,
       output: JSON.stringify(output),
     };
-
   } catch (error) {
     console.error(`Error executing tool ${toolName}:`, error);
     return null;
@@ -161,7 +164,7 @@ const waitForRunToFinish = async (threadId: any) => {
           ) {
             console.log(`Run ${run.id} is still in progress...`);
             runFinished = false;
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 7000));
             break;
           }
         }
@@ -277,7 +280,9 @@ export async function POST(request: Request) {
           ],
         })
       );
-      console.log(`runResult: status=${runResult.status} type=${runResult.required_action?.type}`);
+      console.log(
+        `runResult: status=${runResult.status} type=${runResult.required_action?.type}`
+      );
 
       while (
         runResult?.status === "requires_action" &&
@@ -305,19 +310,21 @@ export async function POST(request: Request) {
         } catch (error) {
           console.error("Error submitting tool outputs:", error);
 
-          // if there is an error submitting tool outputs, we need to submit an error message instead for all called tools 
+          // if there is an error submitting tool outputs, we need to submit an error message instead for all called tools
           // in order to get the run out of the requires_action state
           if (error instanceof APIError) {
-            const error_outputs: Array<RunSubmitToolOutputsParams.ToolOutput> = [];
-            
-            for (const tool_call of toolCalls) {
-                error_outputs.push({
-                  tool_call_id: tool_call.id,
-                  output: "An error occurred while processing your request: " + error.message,
-                });
+            const error_outputs: Array<RunSubmitToolOutputsParams.ToolOutput> =
+              [];
 
+            for (const tool_call of toolCalls) {
+              error_outputs.push({
+                tool_call_id: tool_call.id,
+                output:
+                  "An error occurred while processing your request: " +
+                  error.message,
+              });
             }
-            runResult = await forwardStream( 
+            runResult = await forwardStream(
               openai.beta.threads.runs.submitToolOutputsStream(
                 chat.threadId,
                 runResult.id,
