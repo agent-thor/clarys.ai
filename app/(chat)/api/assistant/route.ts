@@ -15,16 +15,16 @@ const openai = new OpenAI({
 export const maxDuration = 30;
 
 const blocksTools = ["createDocument", "updateDocument", "requestSuggestions"];
-const dateTools = ["getCurrentDate"];
-const postTools = ["getProposalsCountAndProposalsNamesList", "getPostsData"];
+const dateTools = ["getCurrentDateAndTime"];
+const postTools = ["getProposalsCountAndProposalsNames", "retriveData"];
 const allTools = [...blocksTools, ...dateTools, ...postTools];
 
-const getCurrentDate = () => {
+const getCurrentDateAndTime = () => {
   const currentDate = new Date();
   return { currentDate: currentDate.toUTCString() };
 };
 
-const getProposalsCountAndProposalsNamesList = async () => {
+const getProposalsCountAndProposalsNames = async () => {
   try {
     const response = await axios.get(
       "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/s3/s3GetListOfProposals"
@@ -46,10 +46,10 @@ const getProposalsCountAndProposalsNamesList = async () => {
   }
 };
 
-const getPostsData = async (params: any) => {
+const retriveData = async (params: any) => {
   try {
     const response = await axios.get(
-      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/getPostsData",
+      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/retriveData",
       {
         params: {
           ...params,
@@ -75,17 +75,17 @@ const executeTool = async (toolName: string, toolCallId: any, args: any) : Promi
     let output: object | null;
 
     switch (toolName) {
-      case "getCurrentDate":
-        output = await getCurrentDate();
+      case "getCurrentDateAndTime":
+        output = await getCurrentDateAndTime();
         break;
 
-      case "getProposalsCountAndProposalsNamesList":
-        output = await getProposalsCountAndProposalsNamesList();
+      case "getProposalsCountAndProposalsNames":
+        output = await getProposalsCountAndProposalsNames();
         break;
 
-      case "getPostsData":
+      case "retriveData":
         const params = JSON.parse(args || "{}");
-        output = await getPostsData(params);
+        output = await retriveData(params);
         break;
 
       default:
@@ -250,19 +250,19 @@ export async function POST(request: Request) {
             {
               type: "function",
               function: {
-                name: "getCurrentDate",
+                name: "getCurrentDateAndTime",
               },
             },
             {
               type: "function",
               function: {
-                name: "getProposalsCountAndProposalsNamesList",
+                name: "getProposalsCountAndProposalsNames",
               },
             },
             {
               type: "function",
               function: {
-                name: "getPostsData",
+                name: "retriveData",
               },
             },
           ],
