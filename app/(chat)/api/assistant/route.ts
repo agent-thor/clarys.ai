@@ -88,7 +88,7 @@ const executeTool = async (
         break;
 
       case "retrieveData":
-        const params = JSON.parse(args || "{}");
+        const params = JSON.parse(args);
         const response = await retrieveData(params);
 
         if (Array.isArray(response)) {
