@@ -16,7 +16,7 @@ export const maxDuration = 30;
 
 const blocksTools = ["createDocument", "updateDocument", "requestSuggestions"];
 const dateTools = ["getCurrentDateAndTime"];
-const postTools = ["getProposalsCountAndProposalsNames", "retriveData"];
+const postTools = ["getProposalsCountAndProposalsNames", "retrieveData"];
 const allTools = [...blocksTools, ...dateTools, ...postTools];
 
 const getCurrentDateAndTime = () => {
@@ -46,7 +46,7 @@ const getProposalsCountAndProposalsNames = async () => {
   }
 };
 
-const retriveData = async (params: any) => {
+const retrieveData = async (params: any) => {
   try {
     const response = await axios.get(
       "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/retrieveData",
@@ -83,9 +83,9 @@ const executeTool = async (toolName: string, toolCallId: any, args: any) : Promi
         output = await getProposalsCountAndProposalsNames();
         break;
 
-      case "retriveData":
+      case "retrieveData":
         const params = JSON.parse(args || "{}");
-        output = await retriveData(params);
+        output = await retrieveData(params);
         break;
 
       default:
@@ -262,7 +262,7 @@ export async function POST(request: Request) {
             {
               type: "function",
               function: {
-                name: "retriveData",
+                name: "retrieveData",
               },
             },
           ],
