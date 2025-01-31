@@ -89,7 +89,7 @@ const executeTool = async (toolName: string, toolCallId: any, args: any) : Promi
 
         if(Array.isArray(response)){
           if(response.length > 100){
-            output = response[0];
+            output = response.slice(0, 10);
           }
         }else{
           output = response;
