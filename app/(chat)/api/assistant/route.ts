@@ -72,7 +72,7 @@ const retrieveData = async (params: any) => {
 
 const executeTool = async (toolName: string, toolCallId: any, args: any) : Promise<RunSubmitToolOutputsParams.ToolOutput | null> => {
   try {
-    let output: object | null;
+    let output: object | null = null;
 
     switch (toolName) {
       case "getCurrentDateAndTime":
@@ -85,7 +85,16 @@ const executeTool = async (toolName: string, toolCallId: any, args: any) : Promi
 
       case "retrieveData":
         const params = JSON.parse(args || "{}");
-        output = await retrieveData(params);
+        const response = await retrieveData(params);
+
+        if(Array.isArray(response)){
+          if(response.length > 100){
+            output = response[0];
+          }
+        }else{
+          output = response;
+        }
+
         break;
 
       default:
