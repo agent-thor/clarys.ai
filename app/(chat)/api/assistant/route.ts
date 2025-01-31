@@ -49,7 +49,7 @@ const getProposalsCountAndProposalsNames = async () => {
 const retriveData = async (params: any) => {
   try {
     const response = await axios.get(
-      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/retriveData",
+      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/retrieveData",
       {
         params: {
           ...params,
