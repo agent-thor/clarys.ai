@@ -18,7 +18,7 @@ export const viewport = {
   maximumScale: 1, // Disable auto-zoom on mobile Safari
 };
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 
 const LIGHT_THEME_COLOR = 'hsl(0 0% 100%)';

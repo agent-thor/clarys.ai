@@ -11,8 +11,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "",
 });
 
-// Allow streaming responses up to 30 seconds
-export const maxDuration = 60;
+// Allow streaming responses up to 300 seconds
+export const maxDuration = 300;
 
 const blocksTools = ["createDocument", "updateDocument", "requestSuggestions"];
 const dateTools = ["getCurrentDateAndTime"];
