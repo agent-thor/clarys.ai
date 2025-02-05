@@ -18,7 +18,7 @@ export function Tour({
           <ChatHeader userName={userName} />
           <div className="flex flex-col gap-4 pt-8">
             <div className="font-clarys leading-[80px] font-bold text-greetingMedium text-left">
-              Welcome to <span className="text-gradient">Clarys.AI </span>
+              <span className="text-black">Welcome to</span> <span className="text-gradient">Clarys.AI </span>
             </div>
           </div>
           <TourPanel tourNeeded={tourNeeded}></TourPanel>

@@ -11,7 +11,7 @@ export default function Page() {
                 <div className='flex flex-col justify-center gap-8'>
                     <div className='flex flex-col gap-4'>
                         <div className='font-clarys leading-[120px] font-bold text-greetingBig text-left'>
-                            Meet <span className='text-gradient'> Clarys.AI </span>
+                            <span className='text-black'>Meet</span> <span className='text-gradient'> Clarys.AI </span>
                         </div>
                         <div className="self-stretch text-primary text-[32px] font-normal font-clarys leading-8">your OpenGov AI assistant</div>
                     </div>
@@ -21,8 +21,8 @@ export default function Page() {
                     <Image src="/images/logo_horizontal_plain.png" alt="logomark" width={352}
                            height={68.25}></Image>
                     <div className='flex flex-col flex-1 pt-8 gap-4'>
-                        <div className="text-[24px] font-bold ">LOG IN</div>
-                        <div className="text-[14px] pb-4">Please input your Email address to start using Clarys.AI
+                        <div className="text-[24px] font-bold text-black">LOG IN</div>
+                        <div className="text-[14px] pb-4 text-black">Please input your Email address to start using Clarys.AI
                             &
                             help
                             you

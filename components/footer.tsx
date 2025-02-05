@@ -8,6 +8,7 @@ interface FooterProps {
 
 const Footer: React.FC<FooterProps> = ({ singleRow = true }) => {
   const { openOverlay } = useOverlay();
+  const currentDate = new Date();
 
   const termsAndConditionsContent = (
     <>
@@ -365,7 +366,7 @@ const Footer: React.FC<FooterProps> = ({ singleRow = true }) => {
 
         <div className="self-stretch justify-center items-center inline-flex">
           <div className="text-center text-primary text-[12px] font-normal font-clarys leading-3 ">
-            Copyright ©2024 Clarys.AI. All rights reserved.
+            Copyright ©{currentDate.getFullYear()}  Clarys.AI. All rights reserved.
           </div>
         </div>
       </div>
@@ -430,7 +431,7 @@ const Footer: React.FC<FooterProps> = ({ singleRow = true }) => {
 
   const copyrightBar = (
     <div className="text-center text-primary text-[12px] font-normal font-clarys leading-3">
-      Copyright ©2024 Clarys.AI. All rights reserved.
+      Copyright ©{currentDate.getFullYear()} Clarys.AI. All rights reserved.
     </div>
   );
 

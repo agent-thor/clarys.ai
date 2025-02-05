@@ -226,7 +226,7 @@ export default function TourPanel({
           </label>
           <label
             htmlFor="dontShowOnStartup"
-            className="font-clarys text-[14px]"
+            className="font-clarys text-[14px] text-black"
           >
             Do not show on next startup
           </label>
