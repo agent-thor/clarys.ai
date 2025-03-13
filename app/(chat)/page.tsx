@@ -35,7 +35,7 @@ export default async function Page() {
         session.user.name ? session.user.name : session.user.email || ""
       }
       tourNeeded={!tourCompleted}
-    ></Tour>
+    />
   );
 
   return <>{tourNeeded && !tourCompleted ? tourPage : chatPage}</>;

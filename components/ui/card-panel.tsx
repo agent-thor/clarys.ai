@@ -1,6 +1,6 @@
 'use client'
 
-import {ReactNode} from "react";
+import type {ReactNode} from "react";
 import Footer from "@/components/footer";
 
 interface CardPanelProps {
@@ -17,7 +17,7 @@ const CardPanel: React.FC<CardPanelProps> = ({children, fullWidth = false, blur 
     return (
         <div className={classes}>
             {children}
-            <Footer singleRow={fullWidth}></Footer>
+            <Footer singleRow={fullWidth} />
         </div>
     );
 }

@@ -2,7 +2,7 @@ import Form from "next/form";
 import { Input } from "./ui/input";
 import { useActionState, useEffect, useState } from "react";
 import { SubmitButton } from "@/components/submit-button";
-import { login, LoginActionState } from "@/app/(auth)/actions";
+import { login, type LoginActionState } from "@/app/(auth)/actions";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -38,7 +38,7 @@ export function AuthForm() {
 
   const validateForm = (email: string): void => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    let validationErrors = { email: "" };
+    const validationErrors = { email: "" };
 
     if (!email) {
       validationErrors.email = "Email is required.";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Message, useAssistant } from "ai/react";
+import { type Message, useAssistant } from "ai/react";
 import type { Attachment, ChatRequestOptions, CreateMessage } from "ai";
 import { AnimatePresence } from "framer-motion";
 import React, { useState } from "react";
@@ -9,7 +9,7 @@ import { useWindowSize } from "usehooks-ts";
 
 import { ChatHeader } from "@/components/chat-header";
 import { useScrollToBottom } from "@/components/use-scroll-to-bottom";
-import { type Vote } from "@/lib/db/schema";
+import type { Vote } from "@/lib/db/schema";
 import { fetcher } from "@/lib/utils";
 
 import { Block, type UIBlock } from "./block";
@@ -69,7 +69,7 @@ export function Chat({
   const { width: windowWidth = 1920, height: windowHeight = 1080 } =
     useWindowSize();
 
-  var isLoading = status === "in_progress";
+  const isLoading = status === "in_progress";
 
   const [block, setBlock] = useState<UIBlock>({
     documentId: "init",

@@ -1,7 +1,7 @@
 import { AssistantResponse } from "ai";
 import OpenAI, { APIError } from "openai";
 import axios from "axios";
-import { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/runs.mjs";
+import type { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/runs.mjs";
 import { getChatById, saveChat, saveMessages } from "@/lib/db/queries";
 import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
 import { auth } from "@/app/(auth)/auth";
@@ -42,7 +42,7 @@ const getProposalsCountAndProposalsNames = async () => {
     return proposalsCountAndProposalsNamesList;
   } catch (error) {
     console.error("Error fetching proposals data:", error);
-    throw new Error("Failed to fetch proposals data: " + error);
+    throw new Error(`Failed to fetch proposals data: ${error}`);
   }
 };
 
@@ -66,7 +66,7 @@ const retrieveData = async (params: any) => {
     return postsData;
   } catch (error) {
     console.error("Error fetching posts data:", error);
-    throw new Error("Failed to fetch posts data: " + error);
+    throw new Error(`Failed to fetch posts data: ${error}`);
   }
 };
 
@@ -87,7 +87,7 @@ const executeTool = async (
         output = await getProposalsCountAndProposalsNames();
         break;
 
-      case "retrieveData":
+      case "retrieveData": {
         const params = JSON.parse(args);
         const response = await retrieveData(params);
 
@@ -98,6 +98,7 @@ const executeTool = async (
         }
 
         break;
+      }
 
       default:
         console.warn(`Unknown tool requested: ${toolName}`);
@@ -117,7 +118,7 @@ const executeTool = async (
 const isThreadActive = async (threadId: string) => {
   try {
     const thread = await openai.beta.threads.retrieve(threadId);
-    return thread._request_id ? true : false;
+    return !!thread._request_id;
   } catch (error) {
     console.error("Error checking thread status:", error);
     return false;
@@ -137,14 +138,14 @@ const getRunsForThread = async (threadId: any) => {
     }
   } catch (error) {
     console.error("Error retrieving runs for thread:", error);
-    throw new Error("Failed to retrieve runs for thread: " + error);
+    throw new Error(`Failed to retrieve runs for thread: ${error}`);
   }
 };
 
 const waitForRunToFinish = async (threadId: any) => {
   try {
     let runFinished = false;
-    let runId = null;
+    const runId = null;
 
     while (!runFinished) {
       console.log("Checking for runs...");
@@ -180,7 +181,7 @@ const waitForRunToFinish = async (threadId: any) => {
     return runFinished;
   } catch (error) {
     console.error("Error in waitForRunToFinish:", error);
-    throw new Error("Failed to wait for run to finish: " + error);
+    throw new Error(`Failed to wait for run to finish: ${error}`);
   }
 };
 
@@ -290,8 +291,7 @@ export async function POST(request: Request) {
               error_outputs.push({
                 tool_call_id: tool_call.id,
                 output:
-                  "An error occurred while processing your request: " +
-                  error.message,
+                  `An error occurred while processing your request: ${error.message}`,
               });
             }
             runResult = await forwardStream(

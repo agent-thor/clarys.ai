@@ -5,20 +5,15 @@ import { useRouter } from 'next/navigation';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
-import { SidebarUserNav } from '@/components/sidebar-user-nav';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { BetterTooltip } from '@/components/ui/tooltip';
-import Link from 'next/link';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const router = useRouter();
@@ -35,6 +30,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               <Button
                 type="button"
                 className="rounded-xl p-2 h-fit border"
+                 aria-label="Plus Icon"
                 onClick={() => {
                   setOpenMobile(false);
                   router.push('/');

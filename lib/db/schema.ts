@@ -10,7 +10,6 @@ import {
   foreignKey,
   boolean,
 } from 'drizzle-orm/pg-core';
-import { threadId } from 'worker_threads';
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),

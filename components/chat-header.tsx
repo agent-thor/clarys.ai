@@ -23,7 +23,7 @@ export function ChatHeader({ userName }: { userName: string }) {
           />
         </div>
       </Link>
-      <Menu userName={userName}></Menu>
+      <Menu userName={userName} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 export const BotIcon = () => {
   return (
     <svg
+      data-testid="bot-icon"
       height="16"
       strokeLinejoin="round"
       viewBox="0 0 16 16"
@@ -40,6 +41,7 @@ export const UserIcon = () => {
 export const AttachmentIcon = () => {
   return (
     <svg
+    data-testid="att-icon"
       height="16"
       strokeLinejoin="round"
       viewBox="0 0 16 16"
@@ -59,6 +61,7 @@ export const AttachmentIcon = () => {
 export const VercelIcon = ({ size = 17 }) => {
   return (
     <svg
+    data-testid="vc-icon"
       height={size}
       strokeLinejoin="round"
       viewBox="0 0 16 16"
@@ -78,6 +81,7 @@ export const VercelIcon = ({ size = 17 }) => {
 export const GitIcon = () => {
   return (
     <svg
+    data-testid="git-icon"
       height="16"
       strokeLinejoin="round"
       viewBox="0 0 16 16"

@@ -220,7 +220,7 @@ export default function TourPanel({
             <div className="w-12 h-12 border border-white/30 rounded-2xl justify-center items-center gap-4 flex checkBoxEffects transition">
               {/*peer-checked:border-white/70*/}
               {dontShowOnStartup && (
-                <img src="/images/check.svg" className="peer-checked"></img>
+                <img src="/images/check.svg" className="peer-checked" />
               )}
             </div>
           </label>
@@ -243,7 +243,7 @@ export default function TourPanel({
                 alt="previous"
                 width={14.7}
                 height={5.33}
-              ></Image>
+              />
               <span className="text-clarys text-primary text-[14px]">
                 {buttonTexts[currentStep].previous}
               </span>
@@ -261,7 +261,7 @@ export default function TourPanel({
               alt="next"
               width={14.7}
               height={5.33}
-            ></Image>
+            />
           </Button>
         </div>
       </div>

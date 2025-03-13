@@ -19,7 +19,7 @@ export default function Page() {
                 </div>
                 <CardPanel>
                     <Image src="/images/logo_horizontal_plain.png" alt="logomark" width={352}
-                           height={68.25}></Image>
+                           height={68.25} />
                     <div className='flex flex-col flex-1 pt-8 gap-4'>
                         <div className="text-[24px] font-bold text-black">LOG IN</div>
                         <div className="text-[14px] pb-4 text-black">Please input your Email address to start using Clarys.AI

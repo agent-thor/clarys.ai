@@ -21,7 +21,7 @@ export function Tour({
               <span className="text-black">Welcome to</span> <span className="text-gradient">Clarys.AI </span>
             </div>
           </div>
-          <TourPanel tourNeeded={tourNeeded}></TourPanel>
+          <TourPanel tourNeeded={tourNeeded} />
         </CardPanel>
       </div>
     </>

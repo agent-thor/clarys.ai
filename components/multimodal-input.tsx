@@ -6,7 +6,6 @@ import type {
   CreateMessage,
   Message,
 } from "ai";
-import cx from "classnames";
 import { motion } from "framer-motion";
 import type React from "react";
 import {
@@ -23,8 +22,7 @@ import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
 import {cn, sanitizeUIMessages} from "@/lib/utils";
 
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from "./icons";
-import { PreviewAttachment } from "./preview-attachment";
+import { StopIcon } from "./icons";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import Image from "next/image";
@@ -235,7 +233,7 @@ export function MultimodalInput({
                     className="border flex-1 gap-1 sm:flex-col w-full h-auto p-8"
                   >
                     <div className="w-[60px] h-[60px] pb-4 items-center justify-center flex align-middle">
-                      <img src={suggestedAction.image} alt="logo"></img>
+                      <img src={suggestedAction.image} alt="logo" />
                     </div>
                     <span className="text-[14px] font-normal leading-4">
                       {suggestedAction.title}
@@ -327,7 +325,7 @@ export function MultimodalInput({
             alt="logomark"
             width={14}
             height={14}
-          ></Image>
+          />
         </Button>
       )}
 
