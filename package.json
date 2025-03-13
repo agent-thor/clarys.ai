@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "init": "npm install --legacy-peer-deps",
-    "dev": "next dev --turbo",
-    "dev-inspect": "NODE_OPTIONS='--inspect' next dev --turbo",
+    "dev": "NODE_OPTIONS='--inspect' next dev --turbo",
+    "dev:local": "next dev --turbo",
     "build": "tsx lib/db/migrate && next build",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",
