@@ -18,6 +18,8 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
+    "add-user": "npx tsx lib/db/add-user.ts",
+    "delete-user": "npx tsx lib/db/delete-user.ts",
     "test": "jest",
     "test:coverage": "jest --coverage"
   },

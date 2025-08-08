@@ -47,3 +47,14 @@ Ensure all required environment variables are properly configured in your `.env.
 - `npm run db:pull` - Pull database schema
 - `npm run db:check` - Check schema for changes
 - `npm run db:up` - Apply pending migrations
+
+# Add team members
+`npm run add-user` developer1@company.com
+
+`npm run add-user` developer2@company.com
+
+`npm run add-user` manager@company.com
+
+# Remove former employees
+`npm run delete-user` former-employee@company.com
+
