@@ -51,7 +51,19 @@ export const PreviewMessage = ({
         <div className="flex flex-col gap-2 w-full">
           {message.content && (
             <div className="flex flex-col gap-4">
-              <Markdown>{message.content as string}</Markdown>
+              {/* Check if this is a proposal analysis response */}
+              {(message.content as string).includes('# 📊 Proposal Analysis') ? (
+                <div>
+                  <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border-l-4 border-blue-500">
+                    <div className="text-sm text-blue-700 dark:text-blue-300">
+                      📊 <strong>Proposal Analysis Complete</strong> - Data processed via NEW_BACKEND_API
+                    </div>
+                  </div>
+                  <Markdown>{message.content as string}</Markdown>
+                </div>
+              ) : (
+                <Markdown>{message.content as string}</Markdown>
+              )}
             </div>
           )}
 

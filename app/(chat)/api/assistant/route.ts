@@ -16,7 +16,7 @@ export const maxDuration = 300;
 
 const blocksTools = ["createDocument", "updateDocument", "requestSuggestions"];
 const dateTools = ["getCurrentDateAndTime"];
-const postTools = ["getProposalsCountAndProposalsNames", "retrieveData"];
+const postTools = ["processPrompt"]; // Updated to use new prompt-based API
 const allTools = [...blocksTools, ...dateTools, ...postTools];
 
 const getCurrentDateAndTime = () => {
@@ -24,49 +24,74 @@ const getCurrentDateAndTime = () => {
   return { currentDate: currentDate.toUTCString() };
 };
 
-const getProposalsCountAndProposalsNames = async () => {
+// COMMENTED OUT - Using new prompt-based API instead
+// const getProposalsCountAndProposalsNames = async () => {
+//   // This function is no longer used - replaced with processPrompt function
+// };
+
+// COMMENTED OUT - Using new prompt-based API instead
+// const retrieveData = async (params: any) => {
+//   // This function is no longer used - replaced with processPrompt function
+// };
+
+const processPrompt = async (prompt: string) => {
   try {
-    const response = await axios.get(
-      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/s3/s3GetListOfProposals"
-    );
-
-    let proposalsCountAndProposalsNamesList = {
-      numberOfProposals: 0,
-      proposals: [],
-    };
-
-    if (response?.data?.errorCode?.message === "Success") {
-      proposalsCountAndProposalsNamesList = response.data.response;
+    const newBackendApi = process.env.NEW_BACKEND_API;
+    
+    if (!newBackendApi) {
+      throw new Error("NEW_BACKEND_API environment variable is not set");
     }
-
-    return proposalsCountAndProposalsNamesList;
-  } catch (error) {
-    console.error("Error fetching proposals data:", error);
-    throw new Error(`Failed to fetch proposals data: ${error}`);
-  }
-};
-
-const retrieveData = async (params: any) => {
-  try {
-    const response = await axios.get(
-      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/retrieveData",
-      {
-        params: {
-          ...params,
-        },
+    
+    const apiUrl = `${newBackendApi}/extract-with-proposals`;
+    
+    console.log("🔍 [PROCESS_PROMPT] Sending prompt to new backend API:", apiUrl);
+    console.log("🔍 [PROCESS_PROMPT] Prompt:", prompt);
+    
+    const response = await axios.post(apiUrl, {
+      prompt: prompt
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
       }
-    );
+    });
 
-    let postsData = [];
+    console.log("📥 [PROCESS_PROMPT] Response status:", response.status);
+    console.log("📥 [PROCESS_PROMPT] Response headers:", JSON.stringify(response.headers, null, 2));
+    console.log("📥 [PROCESS_PROMPT] Response data:", JSON.stringify(response.data, null, 2));
 
-    if (response?.data?.errorCode?.message === "Success") {
-      postsData = response.data.response;
+    // Expected response format:
+    // {
+    //   "ids": ["string"],
+    //   "links": ["string"], 
+    //   "proposals": [ProposalInfo],
+    //   "analysis": "string | null"
+    // }
+
+    if (response.data) {
+      console.log("✅ [PROCESS_PROMPT] Successfully received response:", {
+        idsCount: response.data.ids?.length || 0,
+        linksCount: response.data.links?.length || 0,
+        proposalsCount: response.data.proposals?.length || 0,
+        hasAnalysis: !!response.data.analysis
+      });
+      
+      return response.data;
+    } else {
+      console.log("⚠️ [PROCESS_PROMPT] Empty response received");
+      return null;
     }
 
-    return postsData;
   } catch (error) {
-    console.error("Error fetching posts data:", error);
-    throw new Error(`Failed to fetch posts data: ${error}`);
+    console.error("❌ [PROCESS_PROMPT] Error processing prompt:", error);
+    if (error instanceof Error) {
+      console.error("❌ [PROCESS_PROMPT] Error message:", error.message);
+      console.error("❌ [PROCESS_PROMPT] Error stack:", error.stack);
+    }
+    if (axios.isAxiosError(error) && error.response) {
+      console.error("❌ [PROCESS_PROMPT] Response error status:", error.response.status);
+      console.error("❌ [PROCESS_PROMPT] Response error data:", error.response.data);
+    }
+    throw new Error(`Failed to process prompt: ${error}`);
   }
 };
 
@@ -76,34 +101,39 @@ const executeTool = async (
   args: any
 ): Promise<RunSubmitToolOutputsParams.ToolOutput | null> => {
   try {
+    console.log(`🛠️ [TOOL_EXECUTION] Executing tool: ${toolName}`);
+    console.log(`🛠️ [TOOL_EXECUTION] Tool call ID: ${toolCallId}`);
+    console.log(`🛠️ [TOOL_EXECUTION] Arguments:`, args);
+    
     let output: object | null = null;
 
     switch (toolName) {
       case "getCurrentDateAndTime":
+        console.log("⏰ [TOOL] Getting current date and time");
         output = await getCurrentDateAndTime();
         break;
 
-      case "getProposalsCountAndProposalsNames":
-        output = await getProposalsCountAndProposalsNames();
-        break;
-
-      case "retrieveData": {
+      case "processPrompt": {
+        console.log("🤖 [TOOL] Processing prompt with NEW BACKEND API - THIS IS FOR PROPOSAL COMPARISON!");
         const params = JSON.parse(args);
-        const response = await retrieveData(params);
-
-        if (Array.isArray(response) && response.length > 100) {
-            output = response.slice(0, 10);
-        } else {
-          output = response;
-        }
-
+        console.log("🤖 [TOOL] Parsed params for processPrompt:", params);
+        
+        // Extract the prompt from the parameters
+        const prompt = params.prompt || params.message || args;
+        console.log("🤖 [TOOL] Extracted prompt:", prompt);
+        
+        const response = await processPrompt(prompt);
+        output = response;
         break;
       }
 
       default:
-        console.warn(`Unknown tool requested: ${toolName}`);
+        console.warn(`❓ [TOOL] Unknown tool requested: ${toolName}`);
         return null;
     }
+
+    console.log(`✅ [TOOL_EXECUTION] Tool ${toolName} completed successfully`);
+    console.log(`📤 [TOOL_EXECUTION] Output preview:`, JSON.stringify(output).substring(0, 200) + (JSON.stringify(output).length > 200 ? '...' : ''));
 
     return {
       tool_call_id: toolCallId,
@@ -187,6 +217,11 @@ const waitForRunToFinish = async (threadId: any) => {
 
 export async function POST(request: Request) {
   const { id, message } = await request.json();
+  
+  console.log("💬 [USER_MESSAGE] New user message received:");
+  console.log("💬 [USER_MESSAGE] Chat ID:", id);
+  console.log("💬 [USER_MESSAGE] Message:", message);
+  
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -195,6 +230,114 @@ export async function POST(request: Request) {
 
   let chat = await getChatById({ id });
 
+  if (!chat) {
+    const threadId = (await openai.beta.threads.create({})).id;
+    const title = await generateTitleFromUserMessage({ message });
+    const insertedChats = await saveChat({
+      id,
+      userId: session.user.id,
+      title,
+      threadId,
+    });
+    chat = insertedChats[0];
+  }
+  
+  // Check if this might be a proposal-related request
+  const isProposalRelated = message && (
+    message.toLowerCase().includes('proposal') ||
+    message.toLowerCase().includes('compare') ||
+    message.toLowerCase().includes('analysis') ||
+    message.toLowerCase().includes('treasury')
+  );
+  
+  if (isProposalRelated) {
+    console.log("🔍 [PROPOSAL_REQUEST] DETECTED! This appears to be a proposal-related request");
+    console.log("🔍 [PROPOSAL_REQUEST] Will use NEW_BACKEND_API:", process.env.NEW_BACKEND_API || "Not set - REQUIRED!");
+    console.log("🔍 [PROPOSAL_REQUEST] Full message will be sent as prompt to backend");
+    
+    // DIRECTLY call our new API for proposal-related requests
+    console.log("🚀 [DIRECT_API_CALL] Bypassing OpenAI Assistant and calling NEW_BACKEND_API directly");
+    try {
+      const directResult = await processPrompt(message);
+      console.log("✅ [DIRECT_API_CALL] Successfully got response from NEW_BACKEND_API:", JSON.stringify(directResult, null, 2));
+      
+      // Save the user message first
+      await saveMessages({
+        messages: [
+          {
+            role: "user",
+            content: message,
+            id: generateUUID(),
+            createdAt: new Date(),
+            chatId: chat.id,
+          },
+        ],
+      });
+      
+      // Extract and format only the analysis part
+      let formattedAnalysis = directResult.analysis || 'No analysis available';
+      
+      // Format the analysis with proper line breaks for better readability
+      formattedAnalysis = formattedAnalysis
+        // Add line breaks before main sections
+        .replace(/## (Proposal \d+:)/g, '\n\n## $1')
+        .replace(/## (Comparison:)/g, '\n\n## $1')
+        // Add line breaks before subsections
+        .replace(/\*\*(Title|Type|Proposer|Reward|Category|Status|Creation Date|Description|Voting Status|Timeline|Cost|Milestones|Impact on Polkadot|Completeness):\*\*/g, '\n\n**$1:**')
+        // Clean up any multiple line breaks
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+
+      const analysisResponse = `# 📊 Proposal Analysis
+
+${formattedAnalysis}
+
+---
+*Analysis generated by NEW_BACKEND_API*`;
+
+      // Save the assistant response with both formatted text and raw data
+      const assistantMessage = {
+        role: "assistant",
+        content: analysisResponse,
+        id: generateUUID(),
+        createdAt: new Date(),
+        chatId: chat.id,
+        // Store the raw analysis data as experimental data
+        experimental_data: directResult,
+      };
+
+      await saveMessages({
+        messages: [assistantMessage],
+      });
+
+      // Return the response in AssistantResponse format for the useAssistant hook
+      return AssistantResponse(
+        { threadId: chat.threadId, messageId: assistantMessage.id },
+        async ({ sendMessage }) => {
+          // Send the formatted analysis as a message
+          await sendMessage({
+            id: assistantMessage.id,
+            role: "assistant",
+            content: [
+              {
+                type: "text",
+                text: {
+                  value: analysisResponse
+                }
+              }
+            ],
+          });
+        }
+      );
+      
+    } catch (error) {
+      console.error("❌ [DIRECT_API_CALL] Error calling NEW_BACKEND_API:", error);
+      // Continue with normal OpenAI Assistant flow as fallback
+    }
+  }
+
+  // Continue with normal OpenAI Assistant flow if not a proposal request or if direct API call failed
+  
   if (!chat) {
     const threadId = (await openai.beta.threads.create({})).id;
     const title = await generateTitleFromUserMessage({ message });
