@@ -2,7 +2,7 @@ import { AssistantResponse } from "ai";
 import OpenAI, { APIError } from "openai";
 import axios from "axios";
 import type { RunSubmitToolOutputsParams } from "openai/resources/beta/threads/runs/runs.mjs";
-import { getChatById, saveChat, saveMessages } from "@/lib/db/queries";
+import { getChatById, getMessagesByChatId, saveChat, saveMessages } from "@/lib/db/queries";
 import { generateTitleFromUserMessage } from "@/app/(chat)/actions";
 import { auth } from "@/app/(auth)/auth";
 import { generateUUID } from "@/lib/utils";
@@ -242,21 +242,125 @@ export async function POST(request: Request) {
     chat = insertedChats[0];
   }
   
-  // Check if this might be a proposal-related request
-  const isProposalRelated = message && (
-    message.toLowerCase().includes('proposal') ||
-    message.toLowerCase().includes('compare') ||
-    message.toLowerCase().includes('analysis') ||
-    message.toLowerCase().includes('treasury')
+  // Define the three main sections/contexts
+  const SECTIONS = {
+    ACCOUNTABILITY: 'Check one proposal for accountability',
+    COMPARE_PROPOSALS: 'Compare two proposals', 
+    CATEGORIES: 'List all categories'
+  };
+
+  // Check which section this request belongs to
+  const currentSection = message && (
+    message.trim() === SECTIONS.ACCOUNTABILITY ? 'ACCOUNTABILITY' :
+    message.trim() === SECTIONS.COMPARE_PROPOSALS ? 'COMPARE_PROPOSALS' :
+    message.trim() === SECTIONS.CATEGORIES ? 'CATEGORIES' :
+    null
   );
-  
-  if (isProposalRelated) {
-    console.log("🔍 [PROPOSAL_REQUEST] DETECTED! This appears to be a proposal-related request");
-    console.log("🔍 [PROPOSAL_REQUEST] Will use NEW_BACKEND_API:", process.env.NEW_BACKEND_API || "Not set - REQUIRED!");
-    console.log("🔍 [PROPOSAL_REQUEST] Full message will be sent as prompt to backend");
+
+  // Get the last section from chat history if this is a follow-up message
+  let activeSection = currentSection;
+  if (!currentSection) {
+    // Get existing messages from the chat to check context
+    const chatMessages = await getMessagesByChatId({ id: chat.id });
     
-    // DIRECTLY call our new API for proposal-related requests
-    console.log("🚀 [DIRECT_API_CALL] Bypassing OpenAI Assistant and calling NEW_BACKEND_API directly");
+    // Look for the most recent section selection in chat history
+    for (let i = chatMessages.length - 1; i >= 0; i--) {
+      const msg = chatMessages[i];
+      if (msg.role === 'user' && msg.content) {
+        const content = typeof msg.content === 'string' ? msg.content : msg.content.toString();
+        if (content.trim() === SECTIONS.ACCOUNTABILITY) {
+          activeSection = 'ACCOUNTABILITY';
+          break;
+        } else if (content.trim() === SECTIONS.COMPARE_PROPOSALS) {
+          activeSection = 'COMPARE_PROPOSALS';
+          break;
+        } else if (content.trim() === SECTIONS.CATEGORIES) {
+          activeSection = 'CATEGORIES';
+          break;
+        }
+      }
+    }
+  }
+
+  console.log("🎯 [SECTION_DETECTION] Current section:", currentSection || 'none');
+  console.log("🎯 [SECTION_DETECTION] Active section (including history):", activeSection || 'none');
+
+  // Check if this is the generic "Compare two proposals" prompt (from button click)
+  const isGenericCompareRequest = currentSection === 'COMPARE_PROPOSALS';
+  
+  // Check if we're in the Compare Proposals context (either initial click or follow-up)
+  const isInCompareProposalsContext = activeSection === 'COMPARE_PROPOSALS';
+  
+  if (isGenericCompareRequest) {
+    console.log("🔍 [GENERIC_COMPARE] DETECTED! Generic 'Compare two proposals' request - providing guidance");
+    
+    // Provide guidance without calling any API
+    const guidanceResponse = `Do you have specific proposal titles or IDs in mind for comparison? Some examples are:
+
+- Compare two referendas with ID 1679 1680
+- Compare two discussions with ID 3310 and 3311
+- Compare two proposals https://polkadot.polkassembly.io/referenda/1696 and https://polkadot.polkassembly.io/referenda/1697  
+- Give me details on proposal ID 1681
+
+Please provide specific proposal IDs, links for a detailed comparison analysis.`;
+
+    console.log("📝 [GUIDANCE_RESPONSE] Sending guidance response without API call");
+
+    // Save the user message first
+    await saveMessages({
+      messages: [
+        {
+          role: "user",
+          content: message,
+          id: generateUUID(),
+          createdAt: new Date(),
+          chatId: chat.id,
+        },
+      ],
+    });
+
+    // Return guidance response immediately
+    return AssistantResponse(
+      { threadId: chat.threadId, messageId: generateUUID() },
+      async ({ sendMessage }) => {
+        await sendMessage({
+          id: generateUUID(),
+          role: "assistant",
+          content: [
+            {
+              type: "text",
+              text: {
+                value: guidanceResponse
+              }
+            }
+          ],
+        });
+        
+        // Save the assistant message
+        await saveMessages({
+          messages: [
+            {
+              role: "assistant",
+              content: guidanceResponse,
+              id: generateUUID(),
+              createdAt: new Date(),
+              chatId: chat.id,
+            },
+          ],
+        });
+        
+        console.log("✅ [GUIDANCE_RESPONSE] Guidance sent successfully");
+      }
+    );
+  }
+  
+  if (isInCompareProposalsContext && !isGenericCompareRequest) {
+    console.log("🔍 [SPECIFIC_COMPARE] DETECTED! Specific proposal comparison request with IDs/details");
+    console.log("🔍 [SPECIFIC_COMPARE] Will use NEW_BACKEND_API:", process.env.NEW_BACKEND_API || "Not set - REQUIRED!");
+    console.log("🔍 [SPECIFIC_COMPARE] Full message will be sent as prompt to backend");
+    
+    // DIRECTLY call our new API for specific proposal comparison requests
+    console.log("🚀 [DIRECT_API_CALL] Bypassing OpenAI Assistant and calling NEW_BACKEND_API directly for proposal comparison");
     try {
       const directResult = await processPrompt(message);
       console.log("✅ [DIRECT_API_CALL] Successfully got response from NEW_BACKEND_API:", JSON.stringify(directResult, null, 2));
@@ -275,48 +379,59 @@ export async function POST(request: Request) {
       });
       
       // Extract and format only the analysis part
-      let formattedAnalysis = directResult.analysis || 'No analysis available';
+      const analysis = directResult.analysis;
+      let analysisResponse = '';
       
-      // Format the analysis with proper line breaks for better readability
-      formattedAnalysis = formattedAnalysis
-        // Add line breaks before main sections
-        .replace(/## (Proposal \d+:)/g, '\n\n## $1')
-        .replace(/## (Comparison:)/g, '\n\n## $1')
-        // Add line breaks before subsections
-        .replace(/\*\*(Title|Type|Proposer|Reward|Category|Status|Creation Date|Description|Voting Status|Timeline|Cost|Milestones|Impact on Polkadot|Completeness):\*\*/g, '\n\n**$1:**')
-        // Clean up any multiple line breaks
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
+      if (analysis && analysis.trim()) {
+        // Format the analysis with proper line breaks for better readability
+        let formattedAnalysis = analysis
+          // Add line breaks before main sections
+          .replace(/## (Proposal \d+:)/g, '\n\n## $1')
+          .replace(/## (Comparison:)/g, '\n\n## $1')
+          // Add line breaks before subsections
+          .replace(/\*\*(Title|Type|Proposer|Reward|Category|Status|Creation Date|Description|Voting Status|Timeline|Cost|Milestones|Impact on Polkadot|Completeness):\*\*/g, '\n\n**$1:**')
+          // Clean up any multiple line breaks
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
 
-      const analysisResponse = `# 📊 Proposal Analysis
+        analysisResponse = `# 📊 Proposal Analysis
 
-${formattedAnalysis}
+${formattedAnalysis}`;
+      } else {
+        // No analysis available - provide helpful guidance
+        analysisResponse = `This is currently beyond my current capabilities. Please rephrase your question or see examples below.
+- Compare two referendas with ID 1679 1680
+- Compare two discussions with ID 3310 and 3311
+- Compare two proposals https://polkadot.polkassembly.io/referenda/1696 and https://polkadot.polkassembly.io/referenda/1697  
+- Give me details on proposal ID 1681
 
----
-*Analysis generated by NEW_BACKEND_API*`;
+Please provide specific proposal IDs, links for a detailed comparison analysis.`;
+      }
 
-      // Save the assistant response with both formatted text and raw data
-      const assistantMessage = {
-        role: "assistant",
-        content: analysisResponse,
-        id: generateUUID(),
-        createdAt: new Date(),
-        chatId: chat.id,
-        // Store the raw analysis data as experimental data
-        experimental_data: directResult,
-      };
+      console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse with proper streaming");
 
-      await saveMessages({
-        messages: [assistantMessage],
-      });
-
-      // Return the response in AssistantResponse format for the useAssistant hook
+      // Return AssistantResponse that works with useAssistant hook
       return AssistantResponse(
-        { threadId: chat.threadId, messageId: assistantMessage.id },
+        { threadId: chat.threadId, messageId: generateUUID() },
         async ({ sendMessage }) => {
-          // Send the formatted analysis as a message
+          console.log("📤 [SEND_MESSAGE] Sending analysis message");
+          
+          // Save the user message first
+          await saveMessages({
+            messages: [
+              {
+                role: "user",
+                content: message,
+                id: generateUUID(),
+                createdAt: new Date(),
+                chatId: chat.id,
+              },
+            ],
+          });
+          
+          // Send the analysis message
           await sendMessage({
-            id: assistantMessage.id,
+            id: generateUUID(),
             role: "assistant",
             content: [
               {
@@ -327,6 +442,21 @@ ${formattedAnalysis}
               }
             ],
           });
+          
+          // Save the assistant message
+          await saveMessages({
+            messages: [
+              {
+                role: "assistant",
+                content: analysisResponse,
+                id: generateUUID(),
+                createdAt: new Date(),
+                chatId: chat.id,
+              },
+            ],
+          });
+          
+          console.log("✅ [SEND_MESSAGE] Analysis sent successfully");
         }
       );
       
@@ -336,7 +466,16 @@ ${formattedAnalysis}
     }
   }
 
-  // Continue with normal OpenAI Assistant flow if not a proposal request or if direct API call failed
+    // Continue with normal OpenAI Assistant flow for other requests (accountability check, categories, etc.)
+  if (activeSection === 'ACCOUNTABILITY') {
+    console.log("🔍 [ACCOUNTABILITY_SECTION] Using OpenAI Assistant for accountability checks");
+  } else if (activeSection === 'CATEGORIES') {
+    console.log("🔍 [CATEGORIES_SECTION] Using OpenAI Assistant for categories listing");
+  } else if (activeSection === 'COMPARE_PROPOSALS') {
+    console.log("🔍 [COMPARE_PROPOSALS_SECTION] Using NEW_BACKEND_API for proposal comparison");
+  } else {
+    console.log("🔄 [GENERAL_CHAT] Using OpenAI Assistant for general chat (no specific section)");
+  }
   
   if (!chat) {
     const threadId = (await openai.beta.threads.create({})).id;
