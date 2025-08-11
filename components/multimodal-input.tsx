@@ -32,7 +32,7 @@ const suggestedActions = [
     image: "/images/accountability.png",
     title: "Check a proposal for ",
     label: "Accountability",
-    action: "Check one proposal for accountability",
+    action: "Check proposals for accountability",
   },
   {
     image: "/images/proposals.png",
