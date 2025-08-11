@@ -375,7 +375,7 @@ export async function POST(request: Request) {
   
   // Define the three main sections/contexts
   const SECTIONS = {
-    ACCOUNTABILITY: 'Check one proposal for accountability',
+    ACCOUNTABILITY: 'Check proposals for accountability',
     COMPARE_PROPOSALS: 'Compare two proposals', 
     CATEGORIES: 'List all categories'
   };
