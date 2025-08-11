@@ -16,7 +16,9 @@ export const maxDuration = 300;
 
 const blocksTools = ["createDocument", "updateDocument", "requestSuggestions"];
 const dateTools = ["getCurrentDateAndTime"];
-const postTools = ["processPrompt"]; // Updated to use new prompt-based API
+const newPostTools = ["processPrompt", "processAccountabilityCheck"];
+const oldPostTools = ["getProposalsCountAndProposalsNames", "retrieveData"];
+const postTools = [...newPostTools, ...oldPostTools];
 const allTools = [...blocksTools, ...dateTools, ...postTools];
 
 const getCurrentDateAndTime = () => {
@@ -24,15 +26,56 @@ const getCurrentDateAndTime = () => {
   return { currentDate: currentDate.toUTCString() };
 };
 
-// COMMENTED OUT - Using new prompt-based API instead
-// const getProposalsCountAndProposalsNames = async () => {
-//   // This function is no longer used - replaced with processPrompt function
-// };
+// OLD BACKEND API FUNCTIONS - Used as fallback when NEW_BACKEND_API fails
+const getProposalsCountAndProposalsNames = async () => {
+  try {
+    console.log("🔄 [OLD_BACKEND] Calling getProposalsCountAndProposalsNames");
+    const response = await axios.get(
+      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/s3/s3GetListOfProposals"
+    );
 
-// COMMENTED OUT - Using new prompt-based API instead
-// const retrieveData = async (params: any) => {
-//   // This function is no longer used - replaced with processPrompt function
-// };
+    let proposalsCountAndProposalsNamesList = {
+      numberOfProposals: 0,
+      proposals: [],
+    };
+
+    if (response?.data?.errorCode?.message === "Success") {
+      proposalsCountAndProposalsNamesList = response.data.response;
+    }
+
+    console.log("✅ [OLD_BACKEND] getProposalsCountAndProposalsNames success");
+    return proposalsCountAndProposalsNamesList;
+  } catch (error) {
+    console.error("❌ [OLD_BACKEND] Error fetching proposals data:", error);
+    throw new Error(`Failed to fetch proposals data: ${error}`);
+  }
+};
+
+const retrieveData = async (params: any) => {
+  try {
+    console.log("🔄 [OLD_BACKEND] Calling retrieveData with params:", params);
+    const response = await axios.get(
+      "http://ec2-34-207-233-187.compute-1.amazonaws.com:3000/api/dynamoDB/retrieveData",
+      {
+        params: {
+          ...params,
+        },
+      }
+    );
+
+    let postsData = [];
+
+    if (response?.data?.errorCode?.message === "Success") {
+      postsData = response.data.response;
+    }
+
+    console.log("✅ [OLD_BACKEND] retrieveData success, got", postsData.length, "items");
+    return postsData;
+  } catch (error) {
+    console.error("❌ [OLD_BACKEND] Error fetching posts data:", error);
+    throw new Error(`Failed to fetch posts data: ${error}`);
+  }
+};
 
 const processPrompt = async (prompt: string) => {
   try {
@@ -95,6 +138,62 @@ const processPrompt = async (prompt: string) => {
   }
 };
 
+const processAccountabilityCheck = async (prompt: string) => {
+  try {
+    const newBackendApi = process.env.NEW_BACKEND_API;
+    
+    if (!newBackendApi) {
+      throw new Error("NEW_BACKEND_API environment variable is not set");
+    }
+    
+    const apiUrl = `${newBackendApi}/accountability-check`;
+    
+    console.log("🔍 [ACCOUNTABILITY_CHECK] Sending prompt to new backend API:", apiUrl);
+    console.log("🔍 [ACCOUNTABILITY_CHECK] Prompt:", prompt);
+    
+    const response = await axios.post(apiUrl, {
+      prompt: prompt
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log("📥 [ACCOUNTABILITY_CHECK] Response status:", response.status);
+    console.log("📥 [ACCOUNTABILITY_CHECK] Response headers:", JSON.stringify(response.headers, null, 2));
+    console.log("📥 [ACCOUNTABILITY_CHECK] Response data:", JSON.stringify(response.data, null, 2));
+
+    // Expected response format:
+    // {
+    //   "accountability_analysis": "string | null"
+    // }
+
+    if (response.data) {
+      console.log("✅ [ACCOUNTABILITY_CHECK] Successfully received response:", {
+        hasAccountabilityAnalysis: !!response.data.accountability_analysis
+      });
+      
+      return response.data;
+    } else {
+      console.log("⚠️ [ACCOUNTABILITY_CHECK] Empty response received");
+      return null;
+    }
+
+  } catch (error) {
+    console.error("❌ [ACCOUNTABILITY_CHECK] Error processing accountability check:", error);
+    if (error instanceof Error) {
+      console.error("❌ [ACCOUNTABILITY_CHECK] Error message:", error.message);
+      console.error("❌ [ACCOUNTABILITY_CHECK] Error stack:", error.stack);
+    }
+    if (axios.isAxiosError(error) && error.response) {
+      console.error("❌ [ACCOUNTABILITY_CHECK] Response error status:", error.response.status);
+      console.error("❌ [ACCOUNTABILITY_CHECK] Response error data:", error.response.data);
+    }
+    
+    throw new Error(`Failed to process accountability check: ${error}`);
+  }
+};
+
 const executeTool = async (
   toolName: string,
   toolCallId: any,
@@ -124,6 +223,38 @@ const executeTool = async (
         
         const response = await processPrompt(prompt);
         output = response;
+        break;
+      }
+
+      case "processAccountabilityCheck": {
+        console.log("🤖 [TOOL] Processing accountability check with NEW BACKEND API!");
+        const params = JSON.parse(args);
+        console.log("🤖 [TOOL] Parsed params for processAccountabilityCheck:", params);
+        
+        // Extract the prompt from the parameters
+        const prompt = params.prompt || params.message || args;
+        console.log("🤖 [TOOL] Extracted prompt:", prompt);
+        
+        const response = await processAccountabilityCheck(prompt);
+        output = response;
+        break;
+      }
+
+      case "getProposalsCountAndProposalsNames":
+        console.log("🔄 [TOOL] Getting proposals count and names (OLD BACKEND)");
+        output = await getProposalsCountAndProposalsNames();
+        break;
+
+      case "retrieveData": {
+        console.log("🔄 [TOOL] Retrieving data (OLD BACKEND)");
+        const params = JSON.parse(args);
+        const response = await retrieveData(params);
+
+        if (Array.isArray(response) && response.length > 100) {
+          output = response.slice(0, 10);
+        } else {
+          output = response;
+        }
         break;
       }
 
@@ -285,11 +416,168 @@ export async function POST(request: Request) {
   console.log("🎯 [SECTION_DETECTION] Current section:", currentSection || 'none');
   console.log("🎯 [SECTION_DETECTION] Active section (including history):", activeSection || 'none');
 
+  // Check if this is the generic "Check one proposal for accountability" prompt (from button click)
+  const isGenericAccountabilityRequest = currentSection === 'ACCOUNTABILITY';
+  
+  // Check if we're in the Accountability context (either initial click or follow-up)
+  const isInAccountabilityContext = activeSection === 'ACCOUNTABILITY';
+
   // Check if this is the generic "Compare two proposals" prompt (from button click)
   const isGenericCompareRequest = currentSection === 'COMPARE_PROPOSALS';
   
   // Check if we're in the Compare Proposals context (either initial click or follow-up)
   const isInCompareProposalsContext = activeSection === 'COMPARE_PROPOSALS';
+
+  // Handle Accountability Check Section
+  if (isGenericAccountabilityRequest) {
+    console.log("🔍 [GENERIC_ACCOUNTABILITY] DETECTED! Generic 'Check one proposal for accountability' request - providing guidance");
+    
+    // Provide guidance without calling any API
+    const guidanceResponse = `Do you have a specific proposal in mind for accountability check? Some examples are:
+
+- Check proposal ID 1681 for accountability
+- Check accountability of proposal https://polkadot.polkassembly.io/referenda/1696
+- Check proposal ID 1681 and 1682 for accountability
+
+Please provide a specific proposal ID, link, or title for accountability analysis.`;
+
+    console.log("📝 [GUIDANCE_RESPONSE] Sending accountability guidance response without API call");
+
+    // Save the user message first
+    await saveMessages({
+      messages: [
+        {
+          role: "user",
+          content: message,
+          id: generateUUID(),
+          createdAt: new Date(),
+          chatId: chat.id,
+        },
+      ],
+    });
+
+    // Return guidance response immediately
+    return AssistantResponse(
+      { threadId: chat.threadId, messageId: generateUUID() },
+      async ({ sendMessage }) => {
+        await sendMessage({
+          id: generateUUID(),
+          role: "assistant",
+          content: [
+            {
+              type: "text",
+              text: {
+                value: guidanceResponse
+              }
+            }
+          ],
+        });
+        
+        // Save the assistant message
+        await saveMessages({
+          messages: [
+            {
+              role: "assistant",
+              content: guidanceResponse,
+              id: generateUUID(),
+              createdAt: new Date(),
+              chatId: chat.id,
+            },
+          ],
+        });
+        
+        console.log("✅ [GUIDANCE_RESPONSE] Accountability guidance sent successfully");
+      }
+    );
+  }
+
+  if (isInAccountabilityContext && !isGenericAccountabilityRequest) {
+    console.log("🔍 [SPECIFIC_ACCOUNTABILITY] DETECTED! Specific accountability check request");
+    console.log("🔍 [SPECIFIC_ACCOUNTABILITY] Will use NEW_BACKEND_API:", process.env.NEW_BACKEND_API || "Not set - REQUIRED!");
+    console.log("🔍 [SPECIFIC_ACCOUNTABILITY] Full message will be sent as prompt to backend");
+    
+    // DIRECTLY call our new API for specific accountability check requests
+    console.log("🚀 [DIRECT_API_CALL] Bypassing OpenAI Assistant and calling NEW_BACKEND_API directly for accountability check");
+    try {
+      const directResult = await processAccountabilityCheck(message);
+      console.log("✅ [DIRECT_API_CALL] Successfully got response from NEW_BACKEND_API:", JSON.stringify(directResult, null, 2));
+      
+      // Save the user message first
+      await saveMessages({
+        messages: [
+          {
+            role: "user",
+            content: message,
+            id: generateUUID(),
+            createdAt: new Date(),
+            chatId: chat.id,
+          },
+        ],
+      });
+      
+      // Extract and format only the accountability_analysis part
+      const accountabilityAnalysis = directResult.accountability_analysis;
+      let analysisResponse = '';
+      
+      if (accountabilityAnalysis && accountabilityAnalysis.trim()) {
+        // Format the analysis with proper line breaks for better readability
+        let formattedAnalysis = accountabilityAnalysis
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+
+        analysisResponse = `# 🔍 Accountability Analysis
+
+${formattedAnalysis}`;
+      } else {
+        // No analysis available - fall back to old backend API
+        console.log("⚠️ [FALLBACK] NEW_BACKEND_API returned empty accountability analysis, falling back to OpenAI Assistant");
+        throw new Error("Empty accountability analysis - fallback to OpenAI Assistant");
+      }
+
+      console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse with proper streaming");
+
+      // Return AssistantResponse that works with useAssistant hook
+      return AssistantResponse(
+        { threadId: chat.threadId, messageId: generateUUID() },
+        async ({ sendMessage }) => {
+          console.log("📤 [SEND_MESSAGE] Sending accountability analysis message");
+          
+          await sendMessage({
+            id: generateUUID(),
+            role: "assistant",
+            content: [
+              {
+                type: "text",
+                text: {
+                  value: analysisResponse
+                }
+              }
+            ],
+          });
+          
+          // Save the assistant message
+          await saveMessages({
+            messages: [
+              {
+                role: "assistant",
+                content: analysisResponse,
+                id: generateUUID(),
+                createdAt: new Date(),
+                chatId: chat.id,
+              },
+            ],
+          });
+          
+          console.log("✅ [SEND_MESSAGE] Accountability analysis sent successfully");
+        }
+      );
+      
+    } catch (error) {
+      console.error("❌ [DIRECT_API_CALL] Error calling NEW_BACKEND_API:", error);
+      console.log("🔄 [FALLBACK] Falling back to OpenAI Assistant for accountability check");
+      // Don't return here - let the code continue to OpenAI Assistant flow
+    }
+  }
   
   if (isGenericCompareRequest) {
     console.log("🔍 [GENERIC_COMPARE] DETECTED! Generic 'Compare two proposals' request - providing guidance");
@@ -398,14 +686,9 @@ Please provide specific proposal IDs, links for a detailed comparison analysis.`
 
 ${formattedAnalysis}`;
       } else {
-        // No analysis available - provide helpful guidance
-        analysisResponse = `This is currently beyond my current capabilities. Please rephrase your question or see examples below.
-- Compare two referendas with ID 1679 1680
-- Compare two discussions with ID 3310 and 3311
-- Compare two proposals https://polkadot.polkassembly.io/referenda/1696 and https://polkadot.polkassembly.io/referenda/1697  
-- Give me details on proposal ID 1681
-
-Please provide specific proposal IDs, links for a detailed comparison analysis.`;
+        // No analysis available - fall back to old backend API
+        console.log("⚠️ [FALLBACK] NEW_BACKEND_API returned empty analysis, falling back to OpenAI Assistant");
+        throw new Error("Empty analysis - fallback to OpenAI Assistant");
       }
 
       console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse with proper streaming");
@@ -462,7 +745,8 @@ Please provide specific proposal IDs, links for a detailed comparison analysis.`
       
     } catch (error) {
       console.error("❌ [DIRECT_API_CALL] Error calling NEW_BACKEND_API:", error);
-      // Continue with normal OpenAI Assistant flow as fallback
+      console.log("🔄 [FALLBACK] Falling back to OpenAI Assistant for proposal comparison");
+      // Don't return here - let the code continue to OpenAI Assistant flow
     }
   }
 
