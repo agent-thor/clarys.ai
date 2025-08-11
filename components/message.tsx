@@ -61,6 +61,16 @@ export const PreviewMessage = ({
                   </div>
                   <Markdown>{message.content as string}</Markdown>
                 </div>
+              ) : /* Check if this is an accountability analysis response */
+              (message.content as string).includes('# 🔍 Accountability Analysis') ? (
+                <div>
+                  <div className="mb-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg border-l-4 border-green-500">
+                    <div className="text-sm text-green-700 dark:text-green-300">
+                      🔍 <strong>Accountability Check Complete</strong> 
+                    </div>
+                  </div>
+                  <Markdown>{message.content as string}</Markdown>
+                </div>
               ) : (
                 <Markdown>{message.content as string}</Markdown>
               )}
