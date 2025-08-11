@@ -437,7 +437,7 @@ export async function POST(request: Request) {
 
 - Check proposal ID 1681 for accountability
 - Check accountability of proposal https://polkadot.polkassembly.io/referenda/1696
-- Analyze the accountability of proposal "CLARYS.AI Development"
+- Check proposal ID 1681 and 1682 for accountability
 
 Please provide a specific proposal ID, link, or title for accountability analysis.`;
 
