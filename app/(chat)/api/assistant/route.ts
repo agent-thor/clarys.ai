@@ -438,6 +438,7 @@ export async function POST(request: Request) {
 - Check proposal ID 1681 for accountability
 - Check accountability of proposal https://polkadot.polkassembly.io/referenda/1696
 - Check proposal ID 1681 and 1682 for accountability
+- Give me accountability of clarys proposal (search by words)
 
 Please provide a specific proposal ID, link, or title for accountability analysis.`;
 
@@ -529,9 +530,9 @@ Please provide a specific proposal ID, link, or title for accountability analysi
 
 ${formattedAnalysis}`;
       } else {
-        // No analysis available - fall back to old backend API
-        console.log("⚠️ [FALLBACK] NEW_BACKEND_API returned empty accountability analysis, falling back to OpenAI Assistant");
-        throw new Error("Empty accountability analysis - fallback to OpenAI Assistant");
+        // No analysis available - show custom message instead of fallback
+        console.log("⚠️ [NO_ANALYSIS] NEW_BACKEND_API returned empty accountability analysis, showing capabilities message");
+        analysisResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
       }
 
       console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse with proper streaming");
@@ -574,8 +575,52 @@ ${formattedAnalysis}`;
       
     } catch (error) {
       console.error("❌ [DIRECT_API_CALL] Error calling NEW_BACKEND_API:", error);
-      console.log("🔄 [FALLBACK] Falling back to OpenAI Assistant for accountability check");
-      // Don't return here - let the code continue to OpenAI Assistant flow
+      console.log("⚠️ [NO_FALLBACK] Showing capabilities message instead of falling back to OpenAI Assistant");
+      
+      // Save the user message first
+      await saveMessages({
+        messages: [
+          {
+            role: "user",
+            content: message,
+            id: generateUUID(),
+            createdAt: new Date(),
+            chatId: chat.id,
+          },
+        ],
+      });
+
+      // Return capabilities message instead of fallback
+      return AssistantResponse(
+        { threadId: chat.threadId, messageId: generateUUID() },
+        async ({ sendMessage }) => {
+          await sendMessage({
+            id: generateUUID(),
+            role: "assistant",
+            content: [
+              {
+                type: "text",
+                text: {
+                  value: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version."
+                }
+              }
+            ],
+          });
+          
+          // Save the assistant message
+          await saveMessages({
+            messages: [
+              {
+                role: "assistant",
+                content: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.",
+                id: generateUUID(),
+                createdAt: new Date(),
+                chatId: chat.id,
+              },
+            ],
+          });
+        }
+      );
     }
   }
   
@@ -589,6 +634,9 @@ ${formattedAnalysis}`;
 - Compare two discussions with ID 3310 and 3311
 - Compare two proposals https://polkadot.polkassembly.io/referenda/1696 and https://polkadot.polkassembly.io/referenda/1697  
 - Give me details on proposal ID 1681
+- Give me details on clarys proposal (search by words)
+- Give me some AI proposals we have in the database.
+
 
 Please provide specific proposal IDs, links for a detailed comparison analysis.`;
 
@@ -686,9 +734,9 @@ Please provide specific proposal IDs, links for a detailed comparison analysis.`
 
 ${formattedAnalysis}`;
       } else {
-        // No analysis available - fall back to old backend API
-        console.log("⚠️ [FALLBACK] NEW_BACKEND_API returned empty analysis, falling back to OpenAI Assistant");
-        throw new Error("Empty analysis - fallback to OpenAI Assistant");
+        // No analysis available - show custom message instead of fallback
+        console.log("⚠️ [NO_ANALYSIS] NEW_BACKEND_API returned empty analysis, showing capabilities message");
+        analysisResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
       }
 
       console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse with proper streaming");
@@ -745,18 +793,65 @@ ${formattedAnalysis}`;
       
     } catch (error) {
       console.error("❌ [DIRECT_API_CALL] Error calling NEW_BACKEND_API:", error);
-      console.log("🔄 [FALLBACK] Falling back to OpenAI Assistant for proposal comparison");
-      // Don't return here - let the code continue to OpenAI Assistant flow
+      console.log("⚠️ [NO_FALLBACK] Showing capabilities message instead of falling back to OpenAI Assistant");
+      
+      // Save the user message first
+      await saveMessages({
+        messages: [
+          {
+            role: "user",
+            content: message,
+            id: generateUUID(),
+            createdAt: new Date(),
+            chatId: chat.id,
+          },
+        ],
+      });
+
+      // Return capabilities message instead of fallback
+      return AssistantResponse(
+        { threadId: chat.threadId, messageId: generateUUID() },
+        async ({ sendMessage }) => {
+          await sendMessage({
+            id: generateUUID(),
+            role: "assistant",
+            content: [
+              {
+                type: "text",
+                text: {
+                  value: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version."
+                }
+              }
+            ],
+          });
+          
+          // Save the assistant message
+          await saveMessages({
+            messages: [
+              {
+                role: "assistant",
+                content: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.",
+                id: generateUUID(),
+                createdAt: new Date(),
+                chatId: chat.id,
+              },
+            ],
+          });
+        }
+      );
     }
   }
 
-    // Continue with normal OpenAI Assistant flow for other requests (accountability check, categories, etc.)
+  // Continue with normal OpenAI Assistant flow ONLY for Categories and general chat
+  // Accountability and Compare Proposals are now handled exclusively by NEW_BACKEND_API above
   if (activeSection === 'ACCOUNTABILITY') {
-    console.log("🔍 [ACCOUNTABILITY_SECTION] Using OpenAI Assistant for accountability checks");
+    console.log("⚠️ [ACCOUNTABILITY_SECTION] Should have been handled by NEW_BACKEND_API above - this shouldn't be reached");
+    throw new Error("Accountability section should be handled by NEW_BACKEND_API");
+  } else if (activeSection === 'COMPARE_PROPOSALS') {
+    console.log("⚠️ [COMPARE_PROPOSALS_SECTION] Should have been handled by NEW_BACKEND_API above - this shouldn't be reached");
+    throw new Error("Compare Proposals section should be handled by NEW_BACKEND_API");
   } else if (activeSection === 'CATEGORIES') {
     console.log("🔍 [CATEGORIES_SECTION] Using OpenAI Assistant for categories listing");
-  } else if (activeSection === 'COMPARE_PROPOSALS') {
-    console.log("🔍 [COMPARE_PROPOSALS_SECTION] Using NEW_BACKEND_API for proposal comparison");
   } else {
     console.log("🔄 [GENERAL_CHAT] Using OpenAI Assistant for general chat (no specific section)");
   }
