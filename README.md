@@ -55,6 +55,8 @@ Ensure all required environment variables are properly configured in your `.env.
 
 `npm run add-user` manager@company.com
 
+`npm run add-users-batch` all users
+
 # Remove former employees
 `npm run delete-user` former-employee@company.com
 
