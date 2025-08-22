@@ -16,7 +16,7 @@ export const maxDuration = 300;
 
 const blocksTools = ["createDocument", "updateDocument", "requestSuggestions"];
 const dateTools = ["getCurrentDateAndTime"];
-const newPostTools = ["processPrompt", "processAccountabilityCheck"];
+const newPostTools = ["processPrompt", "processAccountabilityCheck", "processGeneralChat"];
 const oldPostTools = ["getProposalsCountAndProposalsNames", "retrieveData"];
 const postTools = [...newPostTools, ...oldPostTools];
 const allTools = [...blocksTools, ...dateTools, ...postTools];
@@ -194,6 +194,62 @@ const processAccountabilityCheck = async (prompt: string) => {
   }
 };
 
+const processGeneralChat = async (prompt: string) => {
+  try {
+    const newBackendApi = process.env.NEW_BACKEND_API;
+    
+    if (!newBackendApi) {
+      throw new Error("NEW_BACKEND_API environment variable is not set");
+    }
+    
+    const apiUrl = `${newBackendApi}/general-chat`;
+    
+    console.log("💬 [GENERAL_CHAT] Sending prompt to new backend API:", apiUrl);
+    console.log("💬 [GENERAL_CHAT] Prompt:", prompt);
+    
+    const response = await axios.post(apiUrl, {
+      prompt: prompt
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log("📥 [GENERAL_CHAT] Response status:", response.status);
+    console.log("📥 [GENERAL_CHAT] Response headers:", JSON.stringify(response.headers, null, 2));
+    console.log("📥 [GENERAL_CHAT] Response data:", JSON.stringify(response.data, null, 2));
+
+    // Expected response format:
+    // {
+    //   "answer": "string | null"
+    // }
+
+    if (response.data) {
+      console.log("✅ [GENERAL_CHAT] Successfully received response:", {
+        hasAnswer: !!response.data.answer
+      });
+      
+      return response.data;
+    } else {
+      console.log("⚠️ [GENERAL_CHAT] Empty response received");
+      return null;
+    }
+
+  } catch (error) {
+    console.error("❌ [GENERAL_CHAT] Error processing general chat:", error);
+    if (error instanceof Error) {
+      console.error("❌ [GENERAL_CHAT] Error message:", error.message);
+      console.error("❌ [GENERAL_CHAT] Error stack:", error.stack);
+    }
+    if (axios.isAxiosError(error) && error.response) {
+      console.error("❌ [GENERAL_CHAT] Response error status:", error.response.status);
+      console.error("❌ [GENERAL_CHAT] Response error data:", error.response.data);
+    }
+    
+    throw new Error(`Failed to process general chat: ${error}`);
+  }
+};
+
 const executeTool = async (
   toolName: string,
   toolCallId: any,
@@ -236,6 +292,20 @@ const executeTool = async (
         console.log("🤖 [TOOL] Extracted prompt:", prompt);
         
         const response = await processAccountabilityCheck(prompt);
+        output = response;
+        break;
+      }
+
+      case "processGeneralChat": {
+        console.log("💬 [TOOL] Processing general chat with NEW BACKEND API!");
+        const params = JSON.parse(args);
+        console.log("💬 [TOOL] Parsed params for processGeneralChat:", params);
+        
+        // Extract the prompt from the parameters
+        const prompt = params.prompt || params.message || args;
+        console.log("💬 [TOOL] Extracted prompt:", prompt);
+        
+        const response = await processGeneralChat(prompt);
         output = response;
         break;
       }
@@ -842,8 +912,8 @@ ${formattedAnalysis}`;
     }
   }
 
-  // Continue with normal OpenAI Assistant flow ONLY for Categories and general chat
-  // Accountability and Compare Proposals are now handled exclusively by NEW_BACKEND_API above
+  // Handle GENERAL CHAT with NEW_BACKEND_API
+  // Only Categories section will use OpenAI Assistant now
   if (activeSection === 'ACCOUNTABILITY') {
     console.log("⚠️ [ACCOUNTABILITY_SECTION] Should have been handled by NEW_BACKEND_API above - this shouldn't be reached");
     throw new Error("Accountability section should be handled by NEW_BACKEND_API");
@@ -853,7 +923,126 @@ ${formattedAnalysis}`;
   } else if (activeSection === 'CATEGORIES') {
     console.log("🔍 [CATEGORIES_SECTION] Using OpenAI Assistant for categories listing");
   } else {
-    console.log("🔄 [GENERAL_CHAT] Using OpenAI Assistant for general chat (no specific section)");
+    // GENERAL CHAT - Use NEW_BACKEND_API instead of OpenAI Assistant
+    console.log("💬 [GENERAL_CHAT] DETECTED! Using NEW_BACKEND_API for general chat");
+    console.log("💬 [GENERAL_CHAT] Will use NEW_BACKEND_API:", process.env.NEW_BACKEND_API || "Not set - REQUIRED!");
+    
+    try {
+      const directResult = await processGeneralChat(message);
+      console.log("✅ [GENERAL_CHAT] Successfully got response from NEW_BACKEND_API:", JSON.stringify(directResult, null, 2));
+      
+      // Save the user message first
+      await saveMessages({
+        messages: [
+          {
+            role: "user",
+            content: message,
+            id: generateUUID(),
+            createdAt: new Date(),
+            chatId: chat.id,
+          },
+        ],
+      });
+      
+      // Extract the response from the API (using 'answer' field as that's what the API returns)
+      const chatResponse = directResult.answer;
+      let finalResponse = '';
+      
+      if (chatResponse && chatResponse.trim()) {
+        finalResponse = chatResponse.trim();
+      } else {
+        // No response available - show custom message
+        console.log("⚠️ [NO_RESPONSE] NEW_BACKEND_API returned empty response, showing capabilities message");
+        finalResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
+      }
+
+      console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse for general chat");
+
+      // Return AssistantResponse that works with useAssistant hook
+      return AssistantResponse(
+        { threadId: chat.threadId, messageId: generateUUID() },
+        async ({ sendMessage }) => {
+          console.log("📤 [SEND_MESSAGE] Sending general chat response");
+          
+          await sendMessage({
+            id: generateUUID(),
+            role: "assistant",
+            content: [
+              {
+                type: "text",
+                text: {
+                  value: finalResponse
+                }
+              }
+            ],
+          });
+          
+          // Save the assistant message
+          await saveMessages({
+            messages: [
+              {
+                role: "assistant",
+                content: finalResponse,
+                id: generateUUID(),
+                createdAt: new Date(),
+                chatId: chat.id,
+              },
+            ],
+          });
+          
+          console.log("✅ [SEND_MESSAGE] General chat response sent successfully");
+        }
+      );
+      
+    } catch (error) {
+      console.error("❌ [GENERAL_CHAT] Error calling NEW_BACKEND_API:", error);
+      console.log("⚠️ [NO_FALLBACK] Showing capabilities message instead of falling back to OpenAI Assistant");
+      
+      // Save the user message first
+      await saveMessages({
+        messages: [
+          {
+            role: "user",
+            content: message,
+            id: generateUUID(),
+            createdAt: new Date(),
+            chatId: chat.id,
+          },
+        ],
+      });
+
+      // Return capabilities message instead of fallback
+      return AssistantResponse(
+        { threadId: chat.threadId, messageId: generateUUID() },
+        async ({ sendMessage }) => {
+          await sendMessage({
+            id: generateUUID(),
+            role: "assistant",
+            content: [
+              {
+                type: "text",
+                text: {
+                  value: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version."
+                }
+              }
+            ],
+          });
+          
+          // Save the assistant message
+          await saveMessages({
+            messages: [
+              {
+                role: "assistant",
+                content: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.",
+                id: generateUUID(),
+                createdAt: new Date(),
+                chatId: chat.id,
+              },
+            ],
+          });
+        }
+      );
+    }
   }
   
   if (!chat) {
