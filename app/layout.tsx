@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Toaster } from 'sonner';
 
 import { ThemeProvider } from '@/components/theme-provider';
+import { AuthSessionProvider } from '@/components/session-provider';
 
 import './globals.css';
 import {OverlayProvider} from "@/components/overlay";
@@ -64,18 +65,20 @@ export default async function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
       </head>
       <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Toaster position="top-center" />
-          <OverlayProvider>
-            {children}
-          </OverlayProvider>
-          <Analytics/>
-        </ThemeProvider>
+        <AuthSessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Toaster position="top-center" />
+            <OverlayProvider>
+              {children}
+            </OverlayProvider>
+            <Analytics/>
+          </ThemeProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

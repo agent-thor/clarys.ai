@@ -22,12 +22,7 @@ export default function Page() {
                            height={68.25} />
                     <div className='flex flex-col flex-1 pt-8 gap-4'>
                         <div className="text-[24px] font-bold text-black">LOG IN</div>
-                        <div className="text-[14px] pb-4 text-black">Please input your Email address to start using Clarys.AI
-                            &
-                            help
-                            you
-                            simplify
-                            your workflow
+                        <div className="text-[14px] pb-4 text-black">Sign in with your Google account to start using Clarys.AI and help you simplify your workflow
                         </div>
                         <AuthForm>
                         </AuthForm>

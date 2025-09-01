@@ -34,12 +34,21 @@ export async function getUser(email: string): Promise<Array<User>> {
   }
 }
 
-export async function createUser(email: string, password: string) {
-  const salt = genSaltSync(10);
-  const hash = hashSync(password, salt);
+export async function createUser({ email, name, password }: { email: string, name?: string | null, password?: string }) {
+  let hashedPassword = null;
+  
+  if (password) {
+    const salt = genSaltSync(10);
+    hashedPassword = hashSync(password, salt);
+  }
 
   try {
-    return await db.insert(user).values({ email, password: hash });
+    const result = await db.insert(user).values({ 
+      email, 
+      name: name || null, 
+      password: hashedPassword 
+    }).returning();
+    return result[0];
   } catch (error) {
     console.error('Failed to create user in database');
     throw error;
