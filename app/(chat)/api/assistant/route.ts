@@ -136,6 +136,15 @@ const processPrompt = async (prompt: string, userEmail: string) => {
     if (axios.isAxiosError(error) && error.response) {
       console.error("❌ [PROCESS_PROMPT] Response error status:", error.response.status);
       console.error("❌ [PROCESS_PROMPT] Response error data:", error.response.data);
+      
+      // Handle quota exceeded (429) by returning quota info instead of throwing
+      if (error.response.status === 429 && error.response.data?.detail?.remaining_requests !== undefined) {
+        console.log("⚠️ [QUOTA_EXCEEDED] Returning quota info instead of throwing error");
+        return {
+          analysis: null,
+          remaining_requests: error.response.data.detail.remaining_requests
+        };
+      }
     }
     throw new Error(`Failed to process prompt: ${error}`);
   }
@@ -194,6 +203,15 @@ const processAccountabilityCheck = async (prompt: string, userEmail: string) => 
     if (axios.isAxiosError(error) && error.response) {
       console.error("❌ [ACCOUNTABILITY_CHECK] Response error status:", error.response.status);
       console.error("❌ [ACCOUNTABILITY_CHECK] Response error data:", error.response.data);
+      
+      // Handle quota exceeded (429) by returning quota info instead of throwing
+      if (error.response.status === 429 && error.response.data?.detail?.remaining_requests !== undefined) {
+        console.log("⚠️ [QUOTA_EXCEEDED] Returning quota info instead of throwing error");
+        return {
+          accountability_analysis: null,
+          remaining_requests: error.response.data.detail.remaining_requests
+        };
+      }
     }
     
     throw new Error(`Failed to process accountability check: ${error}`);
@@ -253,6 +271,15 @@ const processGeneralChat = async (prompt: string, userEmail: string) => {
     if (axios.isAxiosError(error) && error.response) {
       console.error("❌ [GENERAL_CHAT] Response error status:", error.response.status);
       console.error("❌ [GENERAL_CHAT] Response error data:", error.response.data);
+      
+      // Handle quota exceeded (429) by returning quota info instead of throwing
+      if (error.response.status === 429 && error.response.data?.detail?.remaining_requests !== undefined) {
+        console.log("⚠️ [QUOTA_EXCEEDED] Returning quota info instead of throwing error");
+        return {
+          answer: null,
+          remaining_requests: error.response.data.detail.remaining_requests
+        };
+      }
     }
     
     throw new Error(`Failed to process general chat: ${error}`);
@@ -617,9 +644,15 @@ ${formattedAnalysis}
 ---
 *Remaining requests: ${remainingRequests}*`;
       } else {
-        // No analysis available - show custom message instead of fallback
-        console.log("⚠️ [NO_ANALYSIS] NEW_BACKEND_API returned empty accountability analysis, showing capabilities message");
-        analysisResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
+        // Check if quota is exceeded (remaining_requests is 0)
+        if (remainingRequests === 0) {
+          console.log("⚠️ [QUOTA_EXCEEDED] User has used all quotas, showing quota exceeded message");
+          analysisResponse = `You have used all your quotas for today. Please try again after 24 hours.`;
+        } else {
+          // No analysis available - show generic capabilities message
+          console.log("⚠️ [NO_ANALYSIS] NEW_BACKEND_API returned empty accountability analysis, showing capabilities message");
+          analysisResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
+        }
       }
 
       console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse with proper streaming");
@@ -662,7 +695,7 @@ ${formattedAnalysis}
       
     } catch (error) {
       console.error("❌ [DIRECT_API_CALL] Error calling NEW_BACKEND_API:", error);
-      console.log("⚠️ [NO_FALLBACK] Showing capabilities message instead of falling back to OpenAI Assistant");
+      console.log("⚠️ [NO_FALLBACK] Showing error message instead of falling back to OpenAI Assistant");
       
       // Save the user message first
       await saveMessages({
@@ -677,7 +710,16 @@ ${formattedAnalysis}
         ],
       });
 
-      // Return capabilities message instead of fallback
+      // Default error message
+      let errorMessage = "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.";
+      
+      // Check if it's a quota exceeded error (status 429 or specific error message)
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        console.log("⚠️ [QUOTA_EXCEEDED] API returned 429, user has exceeded quota");
+        errorMessage = "You have used all your quotas for today. Please try again after 24 hours.";
+      }
+
+      // Return appropriate error message
       return AssistantResponse(
         { threadId: chat.threadId, messageId: generateUUID() },
         async ({ sendMessage }) => {
@@ -688,7 +730,7 @@ ${formattedAnalysis}
               {
                 type: "text",
                 text: {
-                  value: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version."
+                  value: errorMessage
                 }
               }
             ],
@@ -699,7 +741,7 @@ ${formattedAnalysis}
             messages: [
               {
                 role: "assistant",
-                content: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.",
+                content: errorMessage,
                 id: generateUUID(),
                 createdAt: new Date(),
                 chatId: chat.id,
@@ -825,9 +867,15 @@ ${formattedAnalysis}
 ---
 *Remaining requests: ${remainingRequests}*`;
       } else {
-        // No analysis available - show custom message instead of fallback
-        console.log("⚠️ [NO_ANALYSIS] NEW_BACKEND_API returned empty analysis, showing capabilities message");
-        analysisResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
+        // Check if quota is exceeded (remaining_requests is 0)
+        if (remainingRequests === 0) {
+          console.log("⚠️ [QUOTA_EXCEEDED] User has used all quotas, showing quota exceeded message");
+          analysisResponse = `You have used all your quotas for today. Please try again after 24 hours.`;
+        } else {
+          // No analysis available - show generic capabilities message
+          console.log("⚠️ [NO_ANALYSIS] NEW_BACKEND_API returned empty analysis, showing capabilities message");
+          analysisResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
+        }
       }
 
       console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse with proper streaming");
@@ -884,7 +932,7 @@ ${formattedAnalysis}
       
     } catch (error) {
       console.error("❌ [DIRECT_API_CALL] Error calling NEW_BACKEND_API:", error);
-      console.log("⚠️ [NO_FALLBACK] Showing capabilities message instead of falling back to OpenAI Assistant");
+      console.log("⚠️ [NO_FALLBACK] Showing error message instead of falling back to OpenAI Assistant");
       
       // Save the user message first
       await saveMessages({
@@ -899,7 +947,16 @@ ${formattedAnalysis}
         ],
       });
 
-      // Return capabilities message instead of fallback
+      // Default error message
+      let errorMessage = "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.";
+      
+      // Check if it's a quota exceeded error (status 429 or specific error message)
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        console.log("⚠️ [QUOTA_EXCEEDED] API returned 429, user has exceeded quota");
+        errorMessage = "You have used all your quotas for today. Please try again after 24 hours.";
+      }
+
+      // Return appropriate error message
       return AssistantResponse(
         { threadId: chat.threadId, messageId: generateUUID() },
         async ({ sendMessage }) => {
@@ -910,7 +967,7 @@ ${formattedAnalysis}
               {
                 type: "text",
                 text: {
-                  value: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version."
+                  value: errorMessage
                 }
               }
             ],
@@ -921,7 +978,7 @@ ${formattedAnalysis}
             messages: [
               {
                 role: "assistant",
-                content: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.",
+                content: errorMessage,
                 id: generateUUID(),
                 createdAt: new Date(),
                 chatId: chat.id,
@@ -976,9 +1033,15 @@ ${formattedAnalysis}
 ---
 *Remaining requests: ${remainingRequests}*`;
       } else {
-        // No response available - show custom message
-        console.log("⚠️ [NO_RESPONSE] NEW_BACKEND_API returned empty response, showing capabilities message");
-        finalResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
+        // Check if quota is exceeded (remaining_requests is 0)
+        if (remainingRequests === 0) {
+          console.log("⚠️ [QUOTA_EXCEEDED] User has used all quotas, showing quota exceeded message");
+          finalResponse = `You have used all your quotas for today. Please try again after 24 hours.`;
+        } else {
+          // No response available - show generic capabilities message
+          console.log("⚠️ [NO_RESPONSE] NEW_BACKEND_API returned empty response, showing capabilities message");
+          finalResponse = `This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.`;
+        }
       }
 
       console.log("🚀 [ASSISTANT_RESPONSE] Using AssistantResponse for general chat");
@@ -1021,7 +1084,7 @@ ${formattedAnalysis}
       
     } catch (error) {
       console.error("❌ [GENERAL_CHAT] Error calling NEW_BACKEND_API:", error);
-      console.log("⚠️ [NO_FALLBACK] Showing capabilities message instead of falling back to OpenAI Assistant");
+      console.log("⚠️ [NO_FALLBACK] Showing error message instead of falling back to OpenAI Assistant");
       
       // Save the user message first
       await saveMessages({
@@ -1036,7 +1099,16 @@ ${formattedAnalysis}
         ],
       });
 
-      // Return capabilities message instead of fallback
+      // Default error message
+      let errorMessage = "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.";
+      
+      // Check if it's a quota exceeded error (status 429 or specific error message)
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        console.log("⚠️ [QUOTA_EXCEEDED] API returned 429, user has exceeded quota");
+        errorMessage = "You have used all your quotas for today. Please try again after 24 hours.";
+      }
+
+      // Return appropriate error message
       return AssistantResponse(
         { threadId: chat.threadId, messageId: generateUUID() },
         async ({ sendMessage }) => {
@@ -1047,7 +1119,7 @@ ${formattedAnalysis}
               {
                 type: "text",
                 text: {
-                  value: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version."
+                  value: errorMessage
                 }
               }
             ],
@@ -1058,7 +1130,7 @@ ${formattedAnalysis}
             messages: [
               {
                 role: "assistant",
-                content: "This query is currently beyond my capabilities. Please vote on the proposal to help me improve this in the Beta version.",
+                content: errorMessage,
                 id: generateUUID(),
                 createdAt: new Date(),
                 chatId: chat.id,
