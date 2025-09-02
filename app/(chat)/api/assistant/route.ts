@@ -77,7 +77,7 @@ const retrieveData = async (params: any) => {
   }
 };
 
-const processPrompt = async (prompt: string) => {
+const processPrompt = async (prompt: string, userEmail: string) => {
   try {
     const newBackendApi = process.env.NEW_BACKEND_API;
     
@@ -89,9 +89,11 @@ const processPrompt = async (prompt: string) => {
     
     console.log("🔍 [PROCESS_PROMPT] Sending prompt to new backend API:", apiUrl);
     console.log("🔍 [PROCESS_PROMPT] Prompt:", prompt);
+    console.log("🔍 [PROCESS_PROMPT] User email:", userEmail);
     
     const response = await axios.post(apiUrl, {
-      prompt: prompt
+      prompt: prompt,
+      user_email: userEmail
     }, {
       headers: {
         'Content-Type': 'application/json'
@@ -115,7 +117,8 @@ const processPrompt = async (prompt: string) => {
         idsCount: response.data.ids?.length || 0,
         linksCount: response.data.links?.length || 0,
         proposalsCount: response.data.proposals?.length || 0,
-        hasAnalysis: !!response.data.analysis
+        hasAnalysis: !!response.data.analysis,
+        remainingRequests: response.data.remaining_requests
       });
       
       return response.data;
@@ -138,7 +141,7 @@ const processPrompt = async (prompt: string) => {
   }
 };
 
-const processAccountabilityCheck = async (prompt: string) => {
+const processAccountabilityCheck = async (prompt: string, userEmail: string) => {
   try {
     const newBackendApi = process.env.NEW_BACKEND_API;
     
@@ -150,9 +153,11 @@ const processAccountabilityCheck = async (prompt: string) => {
     
     console.log("🔍 [ACCOUNTABILITY_CHECK] Sending prompt to new backend API:", apiUrl);
     console.log("🔍 [ACCOUNTABILITY_CHECK] Prompt:", prompt);
+    console.log("🔍 [ACCOUNTABILITY_CHECK] User email:", userEmail);
     
     const response = await axios.post(apiUrl, {
-      prompt: prompt
+      prompt: prompt,
+      user_email: userEmail
     }, {
       headers: {
         'Content-Type': 'application/json'
@@ -170,7 +175,8 @@ const processAccountabilityCheck = async (prompt: string) => {
 
     if (response.data) {
       console.log("✅ [ACCOUNTABILITY_CHECK] Successfully received response:", {
-        hasAccountabilityAnalysis: !!response.data.accountability_analysis
+        hasAccountabilityAnalysis: !!response.data.accountability_analysis,
+        remainingRequests: response.data.remaining_requests
       });
       
       return response.data;
@@ -194,7 +200,7 @@ const processAccountabilityCheck = async (prompt: string) => {
   }
 };
 
-const processGeneralChat = async (prompt: string) => {
+const processGeneralChat = async (prompt: string, userEmail: string) => {
   try {
     const newBackendApi = process.env.NEW_BACKEND_API;
     
@@ -206,9 +212,11 @@ const processGeneralChat = async (prompt: string) => {
     
     console.log("💬 [GENERAL_CHAT] Sending prompt to new backend API:", apiUrl);
     console.log("💬 [GENERAL_CHAT] Prompt:", prompt);
+    console.log("💬 [GENERAL_CHAT] User email:", userEmail);
     
     const response = await axios.post(apiUrl, {
-      prompt: prompt
+      prompt: prompt,
+      user_email: userEmail
     }, {
       headers: {
         'Content-Type': 'application/json'
@@ -226,7 +234,8 @@ const processGeneralChat = async (prompt: string) => {
 
     if (response.data) {
       console.log("✅ [GENERAL_CHAT] Successfully received response:", {
-        hasAnswer: !!response.data.answer
+        hasAnswer: !!response.data.answer,
+        remainingRequests: response.data.remaining_requests
       });
       
       return response.data;
@@ -253,7 +262,8 @@ const processGeneralChat = async (prompt: string) => {
 const executeTool = async (
   toolName: string,
   toolCallId: any,
-  args: any
+  args: any,
+  userEmail: string
 ): Promise<RunSubmitToolOutputsParams.ToolOutput | null> => {
   try {
     console.log(`🛠️ [TOOL_EXECUTION] Executing tool: ${toolName}`);
@@ -277,7 +287,7 @@ const executeTool = async (
         const prompt = params.prompt || params.message || args;
         console.log("🤖 [TOOL] Extracted prompt:", prompt);
         
-        const response = await processPrompt(prompt);
+        const response = await processPrompt(prompt, userEmail);
         output = response;
         break;
       }
@@ -291,7 +301,7 @@ const executeTool = async (
         const prompt = params.prompt || params.message || args;
         console.log("🤖 [TOOL] Extracted prompt:", prompt);
         
-        const response = await processAccountabilityCheck(prompt);
+        const response = await processAccountabilityCheck(prompt, userEmail);
         output = response;
         break;
       }
@@ -305,7 +315,7 @@ const executeTool = async (
         const prompt = params.prompt || params.message || args;
         console.log("💬 [TOOL] Extracted prompt:", prompt);
         
-        const response = await processGeneralChat(prompt);
+        const response = await processGeneralChat(prompt, userEmail);
         output = response;
         break;
       }
@@ -428,6 +438,9 @@ export async function POST(request: Request) {
   if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
+
+  const userEmail = session.user.email || 'unknown@email.com';
+  console.log("👤 [USER_SESSION] User email:", userEmail);
 
   let chat = await getChatById({ id });
 
@@ -570,7 +583,7 @@ Please provide a specific proposal ID, link, or title for accountability analysi
     // DIRECTLY call our new API for specific accountability check requests
     console.log("🚀 [DIRECT_API_CALL] Bypassing OpenAI Assistant and calling NEW_BACKEND_API directly for accountability check");
     try {
-      const directResult = await processAccountabilityCheck(message);
+      const directResult = await processAccountabilityCheck(message, userEmail);
       console.log("✅ [DIRECT_API_CALL] Successfully got response from NEW_BACKEND_API:", JSON.stringify(directResult, null, 2));
       
       // Save the user message first
@@ -588,6 +601,7 @@ Please provide a specific proposal ID, link, or title for accountability analysi
       
       // Extract and format only the accountability_analysis part
       const accountabilityAnalysis = directResult.accountability_analysis;
+      const remainingRequests = directResult.remaining_requests;
       let analysisResponse = '';
       
       if (accountabilityAnalysis && accountabilityAnalysis.trim()) {
@@ -598,7 +612,10 @@ Please provide a specific proposal ID, link, or title for accountability analysi
 
         analysisResponse = `# 🔍 Accountability Analysis
 
-${formattedAnalysis}`;
+${formattedAnalysis}
+
+---
+*Remaining requests: ${remainingRequests}*`;
       } else {
         // No analysis available - show custom message instead of fallback
         console.log("⚠️ [NO_ANALYSIS] NEW_BACKEND_API returned empty accountability analysis, showing capabilities message");
@@ -768,7 +785,7 @@ Please provide specific proposal IDs, links for a detailed comparison analysis.`
     // DIRECTLY call our new API for specific proposal comparison requests
     console.log("🚀 [DIRECT_API_CALL] Bypassing OpenAI Assistant and calling NEW_BACKEND_API directly for proposal comparison");
     try {
-      const directResult = await processPrompt(message);
+      const directResult = await processPrompt(message, userEmail);
       console.log("✅ [DIRECT_API_CALL] Successfully got response from NEW_BACKEND_API:", JSON.stringify(directResult, null, 2));
       
       // Save the user message first
@@ -786,6 +803,7 @@ Please provide specific proposal IDs, links for a detailed comparison analysis.`
       
       // Extract and format only the analysis part
       const analysis = directResult.analysis;
+      const remainingRequests = directResult.remaining_requests;
       let analysisResponse = '';
       
       if (analysis && analysis.trim()) {
@@ -802,7 +820,10 @@ Please provide specific proposal IDs, links for a detailed comparison analysis.`
 
         analysisResponse = `# 📊 Proposal Analysis
 
-${formattedAnalysis}`;
+${formattedAnalysis}
+
+---
+*Remaining requests: ${remainingRequests}*`;
       } else {
         // No analysis available - show custom message instead of fallback
         console.log("⚠️ [NO_ANALYSIS] NEW_BACKEND_API returned empty analysis, showing capabilities message");
@@ -928,7 +949,7 @@ ${formattedAnalysis}`;
     console.log("💬 [GENERAL_CHAT] Will use NEW_BACKEND_API:", process.env.NEW_BACKEND_API || "Not set - REQUIRED!");
     
     try {
-      const directResult = await processGeneralChat(message);
+      const directResult = await processGeneralChat(message, userEmail);
       console.log("✅ [GENERAL_CHAT] Successfully got response from NEW_BACKEND_API:", JSON.stringify(directResult, null, 2));
       
       // Save the user message first
@@ -946,10 +967,14 @@ ${formattedAnalysis}`;
       
       // Extract the response from the API (using 'answer' field as that's what the API returns)
       const chatResponse = directResult.answer;
+      const remainingRequests = directResult.remaining_requests;
       let finalResponse = '';
       
       if (chatResponse && chatResponse.trim()) {
-        finalResponse = chatResponse.trim();
+        finalResponse = `${chatResponse.trim()}
+
+---
+*Remaining requests: ${remainingRequests}*`;
       } else {
         // No response available - show custom message
         console.log("⚠️ [NO_RESPONSE] NEW_BACKEND_API returned empty response, showing capabilities message");
@@ -1116,7 +1141,7 @@ ${formattedAnalysis}`;
         for (const tool_call of toolCalls) {
           const { id: toolCallId, function: fn } = tool_call;
           const { name, arguments: args } = fn;
-          const result = await executeTool(name, toolCallId, args);
+          const result = await executeTool(name, toolCallId, args, userEmail);
           if (result) tool_outputs.push(result);
         }
 
