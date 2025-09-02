@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useLocalStorage, useWindowSize } from "usehooks-ts";
 
 import {cn, sanitizeUIMessages} from "@/lib/utils";
+import { useSection } from "./section-context";
 
 import { StopIcon } from "./icons";
 import { Button } from "./ui/button";
@@ -33,18 +34,21 @@ const suggestedActions = [
     title: "Check a proposal for ",
     label: "Accountability",
     action: "Check proposals for accountability",
+    section: "accountability-check" as const,
   },
   {
     image: "/images/proposals.png",
     title: "Compare two ",
     label: "Proposals",
     action: "Compare two proposals",
+    section: "extract-with-proposals" as const,
   },
   {
     image: "/images/categories.png",
     title: "Show me all",
     label: "Categories",
     action: "List all categories",
+    section: "general-chat" as const,
   },
 ];
 
@@ -85,6 +89,7 @@ export function MultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const { setCurrentSection } = useSection();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -224,6 +229,9 @@ export function MultimodalInput({
                     variant="ghost"
                     onClick={async () => {
                       window.history.replaceState({}, "", `/chat/${chatId}`);
+
+                      // Set the current section based on the clicked action
+                      setCurrentSection(suggestedAction.section);
 
                       append({
                         role: "user",

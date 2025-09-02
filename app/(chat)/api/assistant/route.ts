@@ -218,6 +218,7 @@ const processAccountabilityCheck = async (prompt: string, userEmail: string) => 
   }
 };
 
+
 const processGeneralChat = async (prompt: string, userEmail: string) => {
   try {
     const newBackendApi = process.env.NEW_BACKEND_API;
