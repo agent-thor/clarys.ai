@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Disable telemetry to clean up build logs
+  telemetry: false,
 };
 
 export default nextConfig;
