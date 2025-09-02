@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { eq } from 'drizzle-orm';
 import postgres from 'postgres';
 import { user } from './schema';
-import { genSaltSync, hashSync } from 'bcrypt-ts';
+// No longer need bcrypt for Google auth
 
 config();
 
@@ -39,20 +39,18 @@ const addAuthorizedUser = async () => {
     const existingUsers = await db.select().from(user).where(eq(user.email, email));
     if (existingUsers.length > 0) {
       console.log(`⚠️  User ${email} already exists in the database!`);
-      console.log(`✅ They can already login with their email address.`);
+      console.log(`✅ They can already login with their Google account using this email address.`);
       await client.end();
       process.exit(0);
     }
 
     console.log(`➕ Adding new user ${email} to database...`);
     
-    // Add new user (password doesn't matter since validation is disabled)
-    const salt = genSaltSync(10);
-    const hash = hashSync('defaultpassword', salt);
-    await db.insert(user).values({ email, password: hash });
+    // Add new user (no password needed for Google auth users)
+    await db.insert(user).values({ email, password: null, name: null });
     
     console.log(`✅ SUCCESS: User ${email} has been added to the database!`);
-    console.log(`✅ They can now login using just their email address.`);
+    console.log(`✅ They can now login using their Google account with this email address.`);
     
     await client.end();
     

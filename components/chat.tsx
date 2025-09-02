@@ -17,6 +17,8 @@ import CardPanel from "@/components/ui/card-panel";
 import { MultimodalInput } from "@/components/multimodal-input";
 import { PreviewMessage, ThinkingMessage } from "@/components/message";
 import { Overview } from "@/components/overview";
+import { RemainingRequests } from "@/components/remaining-requests";
+import { useRemainingRequests } from "@/hooks/use-remaining-requests";
 
 export function Chat({
   id,
@@ -94,12 +96,15 @@ export function Chat({
     useScrollToBottom<HTMLDivElement>();
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  
+  const remainingRequests = useRemainingRequests(messages);
 
   return (
     <>
       <div className="flex flex-row flex-1 align-middle justify-center py-16 h-full gap-16">
         <CardPanel fullWidth={true}>
           <ChatHeader userName={userName} />
+          <RemainingRequests initialCount={remainingRequests} />
           <div
             ref={messagesContainerRef}
             className="hiddenScroll flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"

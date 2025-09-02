@@ -86,12 +86,6 @@ const Menu = ({ userName }: { userName: string }) => {
                   Logout
                 </li>
                 <li className="px-8 py-4 text-disabled">Connect Wallet</li>
-                <li
-                  className="px-8 py-4 hover:underline cursor-pointer"
-                  onClick={toggleSidebar}
-                >
-                  See Last Queries
-                </li>
               </ul>
             </div>
           )}
