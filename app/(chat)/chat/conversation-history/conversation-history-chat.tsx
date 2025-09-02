@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChatHeader } from '@/components/chat-header';
-import { PreviewMessage } from '@/components/message';
+import { Markdown } from '@/components/markdown';
 import { useScrollToBottom } from '@/components/use-scroll-to-bottom';
 
 interface ConversationQuery {
@@ -35,7 +35,7 @@ export function ConversationHistoryChat({ conversationId }: ConversationHistoryC
   }>>([]);
   const [loading, setLoading] = useState(true);
 
-  const [messagesContainerRef, messagesEndRef] = useScrollToBottom();
+  const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
 
   useEffect(() => {
     // Ensure we're in the browser environment
@@ -126,10 +126,7 @@ export function ConversationHistoryChat({ conversationId }: ConversationHistoryC
     return (
       <div className="flex flex-col min-h-0 h-dvh bg-background">
         <ChatHeader 
-          chatId="conversation-history"
-          selectedModelId=""
-          selectedVisibilityType="private"
-          isReadonly={true}
+          userName="User"
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-muted-foreground">Loading conversation history...</div>
@@ -142,10 +139,7 @@ export function ConversationHistoryChat({ conversationId }: ConversationHistoryC
     return (
       <div className="flex flex-col min-h-0 h-dvh bg-background">
         <ChatHeader 
-          chatId="conversation-history"
-          selectedModelId=""
-          selectedVisibilityType="private"
-          isReadonly={true}
+          userName="User"
         />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-muted-foreground">Conversation not found</div>
@@ -156,12 +150,9 @@ export function ConversationHistoryChat({ conversationId }: ConversationHistoryC
 
   return (
     <div className="flex flex-col min-h-0 h-dvh bg-background">
-      <ChatHeader 
-        chatId="conversation-history"
-        selectedModelId=""
-        selectedVisibilityType="private"
-        isReadonly={true}
-      />
+              <ChatHeader 
+          userName="User"
+        />
       
       <div className="flex flex-col min-h-0 gap-6 flex-1 overflow-y-scroll pt-4" ref={messagesContainerRef}>
         <div className="mx-auto max-w-3xl px-4 flex flex-col gap-4">
@@ -175,17 +166,24 @@ export function ConversationHistoryChat({ conversationId }: ConversationHistoryC
             </p>
           </div>
 
-          {/* Messages */}
-          {messages.map((message, index) => (
-            <PreviewMessage
-              key={message.id}
-              chatId="conversation-history"
-              message={message}
-              vote={undefined}
-              isLoading={false}
-              isReadonly={true}
-            />
-          ))}
+                           {/* Messages */}
+                 {messages.map((message, index) => (
+                   <div key={message.id} className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                     <div className={`max-w-[80%] rounded-lg px-4 py-3 ${
+                       message.role === 'user' 
+                         ? 'bg-blue-600 text-white ml-auto' 
+                         : 'bg-muted text-foreground'
+                     }`}>
+                       {message.role === 'user' ? (
+                         <p className="text-sm">{message.content}</p>
+                       ) : (
+                         <div className="text-sm">
+                           <Markdown>{message.content}</Markdown>
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 ))}
         </div>
         <div ref={messagesEndRef} />
       </div>
