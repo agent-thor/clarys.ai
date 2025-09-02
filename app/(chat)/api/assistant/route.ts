@@ -551,7 +551,10 @@ export async function POST(request: Request) {
 - Check proposal ID 1681 and 1682 for accountability
 - Give me accountability of clarys proposal (search by words)
 
-Please provide a specific proposal ID, link, or title for accountability analysis.`;
+Please provide a specific proposal ID, link, or title for accountability analysis.
+
+**Note: You should must provide a proposal ID and link in this section for checking accountability as
+our MVP has limited scope and chat with any kind of queries will be developed in Beta version.**`;
 
     console.log("📝 [GUIDANCE_RESPONSE] Sending accountability guidance response without API call");
 
@@ -766,9 +769,10 @@ ${formattedAnalysis}
 - Give me details on proposal ID 1681
 - Give me details on clarys proposal (search by words)
 - Give me some AI proposals we have in the database.
+Please provide specific proposal IDs, links for a detailed comparison analysis.
 
-
-Please provide specific proposal IDs, links for a detailed comparison analysis.`;
+**Note: You should must provide a proposal ID and link in this section for comparison as
+our MVP has limited scope and chat with any kind of queries will be developed in Beta version.**`;
 
     console.log("📝 [GUIDANCE_RESPONSE] Sending guidance response without API call");
 
