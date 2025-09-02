@@ -19,6 +19,8 @@ import { PreviewMessage, ThinkingMessage } from "@/components/message";
 import { Overview } from "@/components/overview";
 import { RemainingRequests } from "@/components/remaining-requests";
 import { useRemainingRequests } from "@/hooks/use-remaining-requests";
+import { useUsageGuideContext } from "@/components/usage-guide-context";
+
 
 export function Chat({
   id,
@@ -42,6 +44,9 @@ export function Chat({
   } = useAssistant({ api: "/api/assistant", body: { id } });
 
   const messages = [...initialMessages, ...assistantMessages];
+  
+  // Get the usage guide context for manual trigger
+  const { openUsageGuide } = useUsageGuideContext();
 
   const handleSubmit = (
     event?: {
@@ -103,7 +108,7 @@ export function Chat({
     <>
       <div className="flex flex-row flex-1 align-middle justify-center py-16 h-full gap-16">
         <CardPanel fullWidth={true}>
-          <ChatHeader userName={userName} />
+          <ChatHeader userName={userName} onOpenUsageGuide={openUsageGuide} />
           <RemainingRequests initialCount={remainingRequests} />
           <div
             ref={messagesContainerRef}

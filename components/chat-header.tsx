@@ -4,7 +4,12 @@ import Link from "next/link";
 import Menu from "@/components/menu";
 import { SidebarToggle } from "@/components/sidebar-toggle";
 
-export function ChatHeader({ userName }: { userName: string }) {
+interface ChatHeaderProps {
+  userName: string;
+  onOpenUsageGuide?: () => void;
+}
+
+export function ChatHeader({ userName, onOpenUsageGuide }: ChatHeaderProps) {
   return (
     <div className="w-full flex justify-between items-center">
       <div className="flex items-center gap-3">
@@ -27,7 +32,15 @@ export function ChatHeader({ userName }: { userName: string }) {
         </div>
         </Link>
       </div>
-      <Menu userName={userName} />
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onOpenUsageGuide}
+          className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:underline transition-colors focus:outline-none"
+        >
+          Usage Guide
+        </button>
+        <Menu userName={userName} />
+      </div>
     </div>
   );
 }
